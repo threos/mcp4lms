@@ -316,9 +316,15 @@ function buildServer(env: Env, props: GrantProps): McpServer {
               return item;
             });
         };
-        if (course_id) return (await attendanceIn(course_id)).map((g) => ({ courseId: course_id, ...g }));
-
         const courses = await lms.call<any[]>("core_enrol_get_users_courses", { userid: props.lmsUserId });
+        if (course_id) {
+          const name = courses.find((c) => c.id === course_id)?.fullname;
+          const items = (await attendanceIn(course_id)).map((g) => ({ course: name, courseId: course_id, ...g }));
+          return items.length
+            ? items
+            : { note: "This course has no attendance grade item, so its attendance isn't tracked in the gradebook." };
+        }
+
         const results = await Promise.all(
           courses.map(async (c) => {
             try {
@@ -329,7 +335,10 @@ function buildServer(env: Env, props: GrantProps): McpServer {
             }
           }),
         );
-        return results.flat();
+        const items = results.flat();
+        return items.length
+          ? items
+          : { note: "None of the enrolled courses has an attendance grade item, so attendance isn't tracked in the gradebook." };
       })(),
   );
 
