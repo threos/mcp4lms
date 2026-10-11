@@ -31,7 +31,11 @@
   ],
 
   // Production hostname (Cloudflare issues the certificate). Must match PUBLIC_URL.
-  "routes": [{ "pattern": "mcp4lms.com", "custom_domain": true }],
+  // www is attached too, only so the Worker can redirect it to the apex (see src/index.ts).
+  "routes": [
+    { "pattern": "mcp4lms.com", "custom_domain": true },
+    { "pattern": "www.mcp4lms.com", "custom_domain": true }
+  ],
 
   // Daily cleanup of expired OAuth records.
   "triggers": { "crons": ["17 3 * * *"] }

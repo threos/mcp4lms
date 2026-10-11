@@ -20,6 +20,14 @@ function options(env: Env): OAuthProviderOptions<Env> {
 
 export default {
   fetch(request, env, ctx) {
+    // www.<host> → <host> (PUBLIC_URL), keeping path and query.
+    const url = new URL(request.url);
+    const canonical = new URL(env.PUBLIC_URL);
+    if (url.hostname === `www.${canonical.hostname}`) {
+      url.protocol = canonical.protocol;
+      url.host = canonical.host;
+      return Response.redirect(url.toString(), 301);
+    }
     return new OAuthProvider<Env>(options(env)).fetch(request, env, ctx);
   },
   async scheduled(_event, env) {
