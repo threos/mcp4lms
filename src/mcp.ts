@@ -261,7 +261,10 @@ function buildServer(env: Env, props: GrantProps): McpServer {
           submittedAt: sub?.status === "submitted" ? isoDate(sub.timemodified) : null,
           lastModified: isoDate(sub?.timemodified),
           gradingStatus: r.lastattempt?.gradingstatus ?? null,
-          canSubmit: r.lastattempt?.cansubmit ?? null,
+          // Moodle's cansubmit only means "a saved draft can be sent for grading"; canedit is whether
+          // the user can still add or change their submission.
+          canAddOrEditSubmission: r.lastattempt?.canedit ?? null,
+          canSendDraftForGrading: r.lastattempt?.cansubmit ?? null,
           grade: r.feedback?.gradefordisplay ? stripHtml(r.feedback.gradefordisplay, 200) : null,
           gradedAt: isoDate(r.feedback?.gradeddate),
           feedback:
