@@ -69,7 +69,8 @@ the per-grant encrypted copies of the token, and deletes the row. Connecting aga
 ## Project layout
 
 - `src/web/layout.ts` — light-only design system (CSS tokens, nav, footer, security headers). The ☠ glyph is
-  the project's mark; `public/flag.png` is the logo, served as a static asset.
+  the project's mark; `public/flag.png` is the logo, served as a static asset;
+  the favicons and the MCP server icon (`favicon.ico`, `icon-*.png`, `apple-touch-icon.png`) are cut from it.
 - `src/web/pages.ts` — all pages (home, connect, finish, consent, account, privacy).
 - `src/web/bookmarklet.ts` — the connect script that runs on the LMS page.
 - `src/web/i18n.ts` — all user-visible copy of the web pages, in English and Turkish.

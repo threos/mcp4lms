@@ -71,7 +71,16 @@ function gradeItem(g: any) {
 function buildServer(env: Env, props: GrantProps): McpServer {
   const lms = new MoodleClient(props.lmsUrl, props.lmsToken);
   const server = new McpServer(
-    { name: "mcp4lms", version: "0.1.0" },
+    {
+      name: "mcp4lms",
+      title: "Mcp4Lms",
+      version: "0.1.0",
+      websiteUrl: env.PUBLIC_URL,
+      icons: [
+        { src: `${env.PUBLIC_URL}/icon-512.png`, mimeType: "image/png", sizes: ["512x512"] },
+        { src: `${env.PUBLIC_URL}/icon-192.png`, mimeType: "image/png", sizes: ["192x192"] },
+      ],
+    },
     {
       instructions: `Read-only access to the user's courses on their university LMS (${new URL(env.LMS_URL).host}, a Moodle site). Dates are ISO 8601 in UTC.`,
     },
