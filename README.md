@@ -1,10 +1,18 @@
-# Mcp4Lms
+<p align="center">
+  <img src="public/flag.png" alt="Mcp4Lms logo" width="140">
+</p>
+
+<h1 align="center">Mcp4Lms</h1>
 
 Connect Claude (or any MCP client) to your university's LMS. Works with Moodle™.
 
 Students connect once with a bookmark, get a personal key, and add one URL to Claude.
 Claude then gets **read-only** access to their courses, contents, deadlines, assignments,
 grades and announcements.
+
+<p align="center">
+  <img src="docs/tutorial.gif" alt="Connecting Moodle to Claude with the Mcp4Lms bookmark" width="720">
+</p>
 
 One deployment serves one LMS. Mcp4Lms is not affiliated with or endorsed by any university,
 Moodle HQ, Anthropic, OpenAI, Google or Anysphere.
