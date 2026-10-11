@@ -11,6 +11,7 @@ const ALLOWED_FUNCTIONS = new Set([
   "gradereport_user_get_grade_items",
   "mod_forum_get_forums_by_courses",
   "mod_forum_get_forum_discussions",
+  "core_comment_get_comments",
 ]);
 
 export class MoodleError extends Error {

@@ -248,7 +248,7 @@ function buildServer(env: Env, props: GrantProps): McpServer {
     {
       title: "Assignment status",
       description:
-        "The user's submission and grading status for one assignment, including the files and online text they submitted and any feedback files (file urls can be read with read_file).",
+        "The user's submission and grading status for one assignment, including the grade, teacher feedback, the files and online text they submitted, feedback files, and comments on the submission (file urls can be read with read_file).",
       inputSchema: { assignment_id: z.number().int().describe("Assignment id from list_assignments") },
       annotations: { readOnlyHint: true },
     },
@@ -270,6 +270,36 @@ function buildServer(env: Env, props: GrantProps): McpServer {
           .map((f: any) => stripHtml(f.text, 20_000))
           .filter(Boolean);
         const feedbackFiles = files(r.feedback?.plugins);
+
+        // Submission comments aren't in the status response; they are read separately and
+        // need the assignment's course module id. A failure here doesn't hide the status.
+        let submissionComments: { author: string; posted: string | null; text: string }[] | undefined;
+        let commentsNote: string | undefined;
+        if (sub?.id && sub.plugins?.some((p: any) => p.type === "comments")) {
+          try {
+            const res = await lms.call<{ courses: any[] }>("mod_assign_get_assignments", {});
+            const cmid = res.courses.flatMap((c) => c.assignments ?? []).find((a: any) => a.id === assignment_id)?.cmid;
+            if (cmid) {
+              const c = await lms.call<{ comments: any[]; count?: number }>("core_comment_get_comments", {
+                contextlevel: "module",
+                instanceid: cmid,
+                component: "assignsubmission_comments",
+                area: "submission_comments",
+                itemid: sub.id,
+                page: 0,
+              });
+              submissionComments = c.comments.map((m: any) => ({
+                author: m.fullname,
+                posted: isoDate(m.timecreated),
+                text: stripHtml(m.content, 3000),
+              }));
+              if (c.count && c.count > c.comments.length) commentsNote = `Showing ${c.comments.length} of ${c.count} comments.`;
+            }
+          } catch (e) {
+            if (e instanceof MoodleError && e.isAuthError) throw e;
+            commentsNote = "Submission comments could not be loaded.";
+          }
+        }
         return {
           submissionStatus: sub?.status ?? null,
           // timemodified also changes on drafts, so it is only a submission time once submitted.
@@ -291,6 +321,8 @@ function buildServer(env: Env, props: GrantProps): McpServer {
           submittedFiles: submittedFiles.length ? submittedFiles : undefined,
           onlineText: onlineText.length ? onlineText : undefined,
           feedbackFiles: feedbackFiles.length ? feedbackFiles : undefined,
+          submissionComments: submissionComments?.length ? submissionComments : undefined,
+          commentsNote,
         };
       })(),
   );
