@@ -249,6 +249,9 @@ const refuseAccount = (c: Ctx, reason: "invalid" | "expired") =>
 
 // Temporary signed link from the MCP tools: streams one LMS file with the token added server-side.
 app.get("/dl/:link", async (c) => {
+  // Hono serves HEAD through GET routes. Links work once, so a HEAD (link previews, sandboxes
+  // probing before they fetch) must not use one up: answer without even looking the link up.
+  if (c.req.method === "HEAD") return c.body(null, 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
   const s = t(c).download;
   const link = await openDownloadLink(c.env, c.req.param("link"));
   if (!link) return c.html(messagePage(view(c), s.invalidTitle, s.invalid), 410);
@@ -263,6 +266,7 @@ app.get("/dl/:link", async (c) => {
     "Content-Type": type || "application/octet-stream",
     "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
     "X-Robots-Tag": "noindex",
+    "Cache-Control": "private, no-store",
   });
   const length = res.headers.get("content-length");
   if (length) headers.set("Content-Length", length);

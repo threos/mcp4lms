@@ -307,8 +307,8 @@ const en = {
 
   notFound: { title: "Not found", message: "This page doesn't exist.", home: "Home" },
   download: {
-    invalidTitle: "Link expired",
-    invalid: "This download link is invalid or has expired. Ask Claude for a new one.",
+    invalidTitle: "Link used or expired",
+    invalid: "This download link has already been used or has expired. Links work once, for 5 minutes. Ask Claude for a new one.",
     failedTitle: "Download failed",
     failed: "The LMS refused the file. Try again, or open it from the LMS.",
   },
@@ -617,8 +617,8 @@ const tr: Strings = {
 
   notFound: { title: "Bulunamadı", message: "Bu sayfa mevcut değil.", home: "Ana sayfa" },
   download: {
-    invalidTitle: "Bağlantının süresi doldu",
-    invalid: "Bu indirme bağlantısı geçersiz ya da süresi dolmuş. Claude'dan yeni bir bağlantı isteyin.",
+    invalidTitle: "Bağlantı kullanılmış ya da süresi dolmuş",
+    invalid: "Bu indirme bağlantısı zaten kullanılmış ya da süresi dolmuş. Bağlantılar yalnızca bir kez ve 5 dakika boyunca çalışır. Claude'dan yeni bir bağlantı isteyin.",
     failedTitle: "İndirme başarısız",
     failed: "LMS dosyayı vermedi. Tekrar deneyin ya da dosyayı LMS'ten açın.",
   },

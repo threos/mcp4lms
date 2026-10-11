@@ -55,7 +55,7 @@ Moodle HQ, Anthropic, OpenAI, Google or Anysphere.
 |---|---|
 | D1 `accounts` | account id, LMS URL + user id, key verifier (HKDF), LMS token encrypted with AES-256-GCM under a key derived from the user's secret, and the expiry the user chose (24 hours, 7, 30 or 90 days; default 90) |
 | KV `OAUTH_KV` | OAuth clients, grants and token hashes (`@cloudflare/workers-oauth-provider`); grant props are encrypted with token-derived keys |
-| D1 `download_links` | per download link: account id, expiry, and the file URL + LMS token encrypted with AES-256-GCM under a key derived from a secret that only the link holds. Deleted after 15 minutes, and on reconnect, grant revoke or account deletion. The file itself is never stored; it is streamed from the LMS when the link is opened |
+| D1 `download_links` | per download link: account id, expiry, and the file URL + LMS token encrypted with AES-256-GCM under a key derived from a secret that only the link holds. Deleted when the link is used (links work once), after 5 minutes, and on reconnect, grant revoke or account deletion. The file itself is never stored; it is streamed from the LMS when the link is opened |
 | Nowhere | the user key, the LMS password, plaintext LMS tokens, names, emails, course data |
 
 Losing the key is harmless: connecting again issues a new key, invalidates the old one and
@@ -140,10 +140,12 @@ Moodle app works).
   10 MB, images 5 MB); whether the client can read an attached PDF depends on the client. Links
   outside the LMS are fetched anonymously and only after the AI has asked the user and passes
   `confirmed_by_user`.
-- `get_download_link` (and `read_file`, for files too large to attach) gives a download link valid
-  for 15 minutes. Anyone holding the link can download that one file until it expires. The link
-  contains a secret, so it shows up in request logs while valid (e.g. Workers observability); after
-  expiry the row is deleted and the link decrypts nothing.
+- `get_download_link` (and `read_file`, for files too large to attach) gives a download link that
+  works once, within 5 minutes. Anyone holding the link can download that one file until it is
+  used or expires. The link contains a secret, so the deployment keeps Workers request
+  (invocation) logs off; once used or expired, the row is deleted and the link decrypts nothing.
+  Opening the link uses it up even if the LMS then fails to send the file (ask for a new one);
+  a `HEAD` request does not.
 - While a request is being served, the server handles the LMS token in memory. Users have
   to trust that the deployment runs this code.
 - Expiry (and deletion) does not revoke the app token on the LMS itself: that would need the

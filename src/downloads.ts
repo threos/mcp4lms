@@ -1,17 +1,19 @@
-// Temporary download links for an LMS file in its original form.
+// Temporary, single-use download links for an LMS file in its original form.
 //
 // A link looks like `/dl/<id>.<secret>`. The secret is 32 random bytes that only the
 // link holds. From it we derive (HKDF-SHA256) an AES-256-GCM key that encrypts the file
 // url and the LMS token in D1 (`download_links`). The server stores neither the secret
 // nor anything derived from it, so a row can't be decrypted without its link, and once
-// the row is deleted (expiry, reconnect, revoke, account deletion) the link is useless,
-// even to someone who later gets the database. The file itself is never stored: it is
-// streamed from the LMS when the link is opened. The file name is left out of the link
-// so it doesn't end up in browser history or logs.
+// the row is deleted (use, expiry, reconnect, revoke, account deletion) the link is
+// useless, even to someone who later gets the database. A link works once: opening it
+// deletes the row, so a link that leaks after use (history, logs, a shared chat) opens
+// nothing. The file itself is never stored: it is streamed from the LMS when the link is
+// opened. The file name is left out of the link so it doesn't end up in browser history
+// or logs.
 import { b64urlDecode, b64urlEncode, randomId } from "./crypto";
 import { lmsFileUrl } from "./files";
 
-export const DOWNLOAD_TTL_MS = 15 * 60 * 1000;
+export const DOWNLOAD_TTL_MS = 5 * 60 * 1000;
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -54,7 +56,10 @@ export async function createDownloadLink(
   return { url: `${env.PUBLIC_URL}/dl/${id}.${b64urlEncode(secret)}`, expiresAt: new Date(expiresAt).toISOString() };
 }
 
-/** The file a link points to, or null if the link is malformed, unknown, expired, or its account is no longer active. */
+/**
+ * Uses up a link: the file it points to, or null if the link is malformed, unknown, already
+ * used, expired, or its account is no longer active.
+ */
 export async function openDownloadLink(env: Env, link: string): Promise<{ target: URL; token: string } | null> {
   const m = /^([0-9a-f]{32})\.([A-Za-z0-9_-]{43})$/.exec(link);
   if (!m) return null;
@@ -80,8 +85,17 @@ export async function openDownloadLink(env: Env, link: string): Promise<{ target
     );
     payload = JSON.parse(dec.decode(pt));
   } catch {
-    return null; // wrong secret
+    return null; // wrong secret: leave the row, so guessing at an id can't burn someone's link
   }
+  // Consume only now that the secret checked out. The DELETE is a single statement, so of
+  // two concurrent opens only one gets the row back. It re-checks both expiries, in case
+  // either passed (or the account was deleted) while we were decrypting.
+  const consumed = await env.DB.prepare(
+    "DELETE FROM download_links WHERE id = ?1 AND expires_at > ?2 AND EXISTS (SELECT 1 FROM accounts a WHERE a.id = account_id AND a.expires_at > ?2) RETURNING id",
+  )
+    .bind(id, Date.now())
+    .first();
+  if (!consumed) return null;
   const target = lmsFileUrl(env.LMS_URL, payload.u);
   return target ? { target, token: payload.t } : null;
 }

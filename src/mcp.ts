@@ -467,7 +467,7 @@ function buildServer(env: Env, props: GrantProps): McpServer {
         const content: any[] = [{ type: "text", text: f.text ? `${head}\n\n${f.text}` : head }];
         if (f.rawTooLarge && f.lmsTarget) {
           const link = await createDownloadLink(env, props.accountId, props.lmsToken, f.lmsTarget);
-          content[0].text += `\nDownload link for the original (valid until ${link.expiresAt}): ${link.url}`;
+          content[0].text += `\nDownload link for the original (works once, until ${link.expiresAt}): ${link.url}`;
         }
         if (f.raw) {
           const data = toBase64(f.raw.bytes);
@@ -497,8 +497,9 @@ function buildServer(env: Env, props: GrantProps): McpServer {
     {
       title: "Download link for a file",
       description:
-        `Creates a temporary link (valid for ${DOWNLOAD_TTL_MS / 60000} minutes) that downloads an LMS file in its original form, for the user to open or for your own tools (e.g. a code sandbox) to fetch. ` +
-        "Use it for files read_file can't attach (too large) or when the original is needed. Anyone with the link can download that one file until it expires, so only share it with the user.",
+        `Creates a temporary link that downloads an LMS file in its original form, for the user to open or for your own tools (e.g. a code sandbox) to fetch. ` +
+        `The link works once and expires after ${DOWNLOAD_TTL_MS / 60000} minutes; if the user (or a tool) needs the file again, create a new link. ` +
+        "Use it for files read_file can't attach (too large) or when the original is needed. Anyone with the link can download that one file until it is used or expires, so only share it with the user.",
       inputSchema: { url: z.string().url().describe("File url from get_course_contents, list_assignments or get_assignment_status") },
       annotations: { readOnlyHint: true },
     },
