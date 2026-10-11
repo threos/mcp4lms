@@ -9,6 +9,13 @@ grades and announcements.
 One deployment serves one LMS. Mcp4Lms is not affiliated with or endorsed by any university,
 Moodle HQ, Anthropic, OpenAI, Google or Anysphere.
 
+> **Contributions are welcome.** This project handles students' LMS access, so security
+> reviews and hardening are the most valuable help: read [`src/crypto.ts`](src/crypto.ts),
+> [`src/app.ts`](src/app.ts) and [`src/web/bookmarklet.ts`](src/web/bookmarklet.ts) and open an
+> issue or pull request for anything that looks wrong. Also welcome: bug reports, adding your
+> university to [`src/universities.ts`](src/universities.ts), and testing against other
+> Moodle™ sites and MCP clients.
+
 ## How login works
 
 ```
