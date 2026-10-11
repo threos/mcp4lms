@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mcp4lms",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+
+  // Static files (logo, favicon). Served before the Worker for matching paths.
+  "assets": { "directory": "./public" },
+
+  // One deployment serves one LMS. Change these for your own instance.
+  "vars": {
+    "PUBLIC_URL": "http://localhost:8787",
+    "LMS_URL": "https://lms.ozyegin.edu.tr"
+  },
+
+  // OAuth grants/tokens (managed by @cloudflare/workers-oauth-provider).
+  // Create with: npx wrangler kv namespace create OAUTH_KV
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "00000000000000000000000000000000" }],
+
+  // Accounts (encrypted LMS tokens). Create with: npx wrangler d1 create mcp4lms
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mcp4lms",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Daily cleanup of expired OAuth records.
+  "triggers": { "crons": ["17 3 * * *"] }
+}

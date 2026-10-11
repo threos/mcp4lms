@@ -1,0 +1,117 @@
+// Minimal Moodle web service client. Only read-only functions on the
+// allowlist below can be called, whatever the caller asks for.
+
+const ALLOWED_FUNCTIONS = new Set([
+  "core_webservice_get_site_info",
+  "core_enrol_get_users_courses",
+  "core_course_get_contents",
+  "core_calendar_get_action_events_by_timesort",
+  "mod_assign_get_assignments",
+  "mod_assign_get_submission_status",
+  "gradereport_user_get_grade_items",
+  "mod_forum_get_forums_by_courses",
+  "mod_forum_get_forum_discussions",
+]);
+
+export class MoodleError extends Error {
+  constructor(
+    message: string,
+    readonly code?: string,
+  ) {
+    super(message);
+  }
+  get isAuthError(): boolean {
+    return this.code === "invalidtoken" || this.code === "accessexception";
+  }
+}
+
+type Params = Record<string, unknown>;
+
+// Moodle REST expects PHP-style form params: ids[0]=1&ids[1]=2, opts[a]=b.
+function flatten(params: Params, prefix = "", out = new URLSearchParams()): URLSearchParams {
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null) continue;
+    const key = prefix ? `${prefix}[${k}]` : k;
+    if (typeof v === "object") flatten(v as Params, key, out);
+    else out.append(key, typeof v === "boolean" ? (v ? "1" : "0") : String(v));
+  }
+  return out;
+}
+
+export function normalizeSiteUrl(url: string): string {
+  return url.trim().replace(/\/+$/, "").toLowerCase();
+}
+
+export class MoodleClient {
+  constructor(
+    private readonly siteUrl: string,
+    private readonly token: string,
+  ) {}
+
+  async call<T = any>(wsfunction: string, params: Params = {}): Promise<T> {
+    if (!ALLOWED_FUNCTIONS.has(wsfunction)) throw new MoodleError(`Function not allowed: ${wsfunction}`);
+    const body = flatten(params);
+    body.set("wstoken", this.token);
+    body.set("wsfunction", wsfunction);
+    body.set("moodlewsrestformat", "json");
+    const res = await fetch(`${this.siteUrl.replace(/\/+$/, "")}/webservice/rest/server.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "mcp4lms" },
+      body,
+    });
+    if (!res.ok) throw new MoodleError(`LMS returned HTTP ${res.status}`);
+    const data: any = await res.json();
+    if (data && typeof data === "object" && "exception" in data) {
+      throw new MoodleError(data.message ?? "LMS error", data.errorcode);
+    }
+    return data as T;
+  }
+
+  siteInfo() {
+    return this.call<{
+      siteurl: string;
+      sitename: string;
+      userid: number;
+      fullname: string;
+      firstname: string;
+      release: string;
+    }>("core_webservice_get_site_info");
+  }
+}
+
+// --- Formatting helpers for tool output -------------------------------------
+
+export function stripHtml(html: string | null | undefined, max = 2000): string {
+  if (!html) return "";
+  const text = html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, "")
+    .replace(/<br\s*\/?>|<\/(p|div|li|h\d|tr)>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n\s*\n+/g, "\n")
+    .trim();
+  return text.length > max ? text.slice(0, max) + "…" : text;
+}
+
+/** Remove any `token=` query parameter so we never hand the LMS token to the model. */
+export function stripToken(url: string | undefined): string | undefined {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.delete("token");
+    u.searchParams.delete("wstoken");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+export function isoDate(unix: number | null | undefined): string | null {
+  return unix ? new Date(unix * 1000).toISOString() : null;
+}

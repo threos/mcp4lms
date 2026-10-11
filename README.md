@@ -1,0 +1,118 @@
+# Mcp4Lms
+
+Connect Claude (or any MCP client) to your university's LMS. Works with Moodle™.
+
+Students connect once with a bookmark, get a personal key, and add one URL to Claude.
+Claude then gets **read-only** access to their courses, contents, deadlines, assignments,
+grades and announcements.
+
+One deployment serves one LMS. Mcp4Lms is not affiliated with or endorsed by any university,
+Moodle HQ or Anthropic.
+
+## How login works
+
+```
+ Student's browser (on the LMS, logged in)            Mcp4Lms Worker
+ ─────────────────────────────────────────            ──────────────
+ 1. Bookmarklet fetches
+    /admin/tool/mobile/launch.php?…&confirmed=1
+    → page with moodlemobile://token=…
+ 2. Encrypts {siteId, token, passport, ts}
+    with the server's RSA-OAEP public key
+ 3. Opens /connect/finish#c=<ciphertext>  ───────────► 4. POST /api/connect
+    (fragment: never sent to a server)                    decrypt, check age + one-time nonce,
+                                                          verify token (get_site_info) and
+                                                          siteId = md5(wwwroot + passport)
+                                                       5. Create account, generate user key
+ 6. Student saves key  m4l_<id>_<secret>  ◄──────────     m4l_<id>_<secret> (shown once)
+
+ Claude ── OAuth 2.1 (DCR + PKCE) ──► /authorize: student pastes key
+                                      → LMS token decrypted, put in the grant's props
+                                        (encrypted by the OAuth library with a key
+                                        derived from the issued tokens)
+ Claude ── Bearer token ────────────► /mcp: props decrypted in memory, stateless MCP
+                                      server calls an allowlist of read-only functions
+```
+
+**What is stored**
+
+| Where | What |
+|---|---|
+| D1 `accounts` | account id, LMS URL + user id, key verifier (HKDF), LMS token encrypted with AES-256-GCM under a key derived from the user's secret |
+| KV `OAUTH_KV` | OAuth clients, grants and token hashes (`@cloudflare/workers-oauth-provider`); grant props are encrypted with token-derived keys |
+| Nowhere | the user key, the LMS password, plaintext LMS tokens, names, emails, course data |
+
+Losing the key is harmless: connecting again issues a new key, invalidates the old one and
+revokes all OAuth grants.
+
+## Project layout
+
+- `src/web/layout.ts` — light-only design system (CSS tokens, nav, footer, security headers). The ☠ glyph is
+  the project's mark; `public/flag.png` is the logo, served as a static asset.
+- `src/web/pages.ts` — all pages (home, connect, finish, consent, account, privacy).
+- `src/web/bookmarklet.ts` — the connect script that runs on the LMS page.
+- `src/web/i18n.ts` — all user-visible copy of the web pages, in English and Turkish.
+
+## Languages
+
+The web pages are available in English (default) and Turkish. The language is resolved per request
+in `src/app.ts`: `?lang=tr` or `?lang=en` wins and is remembered in a `lang` cookie (one year); otherwise
+the cookie, then the browser's `Accept-Language`, then English. The EN / TR toggle in the nav keeps the
+current path and query string (so it is safe on `/authorize`) and only replaces `lang`.
+
+All copy lives in `src/web/i18n.ts`: `en` defines the shape (`Strings`), `tr` must provide every key, and
+the page renderers read `strings[lang]`. Strings that reach inline scripts or the bookmarklet are plain
+strings with `{placeholders}`. The bookmark name `☠ Connect Mcp4Lms`, code snippets, vendor UI paths
+("Settings → Connectors") and the MCP tool descriptions in `src/mcp.ts` (read by the AI) stay in English.
+
+To add a language: add its code to `Lang` and `LANGS` in `i18n.ts`, add a full `Strings` object to
+`strings`, and optionally translate university names via `names` in `src/universities.ts`. The toggle
+and the `Accept-Language` matching pick it up automatically.
+
+## Development
+
+```bash
+npm install
+npm run keys                 # writes CONNECT_PRIVATE_KEY to .dev.vars
+npm run db:migrate:local
+npm run dev                  # http://localhost:8787
+```
+
+To try the real flow locally, open http://localhost:8787/connect, drag the **☠ Connect Mcp4Lms**
+bookmark to your bookmarks bar, open the LMS and click it. Then add `http://localhost:8787/mcp` to an MCP
+client (for example `npx @modelcontextprotocol/inspector`).
+
+## Deploying your own instance
+
+1. Edit `vars` in `wrangler.jsonc` (`PUBLIC_URL`, `LMS_URL`).
+2. Create storage and put the ids in `wrangler.jsonc`:
+   ```bash
+   npx wrangler kv namespace create OAUTH_KV
+   npx wrangler d1 create mcp4lms
+   npm run db:migrate:remote
+   ```
+3. Set the connect key (rotating it invalidates bookmarks people already saved):
+   ```bash
+   npm run -s keys -- --print | npx wrangler secret put CONNECT_PRIVATE_KEY
+   ```
+4. `npm run deploy`
+
+The LMS must have the Moodle mobile web service enabled (it is whenever the official
+Moodle app works).
+
+## Limits and known gaps
+
+- Desktop only for connecting (bookmarklets and DevTools aren't practical on phones).
+  After connecting, Claude works anywhere.
+- No rate limiting yet on `/api/connect`, `/authorize` and `/account`.
+- File downloads aren't exposed; tools return file names and LMS links.
+- While a request is being served, the server handles the LMS token in memory. Users have
+  to trust that the deployment runs this code.
+
+## License and disclaimer
+
+Mcp4Lms is free software under the [GNU AGPL-3.0-or-later](LICENSE). If you run a modified
+version as a network service, the AGPL requires you to offer its source to your users.
+
+It is provided as is, without warranty, and is not affiliated with any university, Moodle HQ
+or any AI tool vendor. See the Privacy page of a running instance for the full disclaimer.
