@@ -14,12 +14,6 @@ export interface View {
 /** The skull is the project's mark: used in text wherever an icon would go. */
 export const MARK = "☠";
 
-const FAVICON =
-  "data:image/svg+xml," +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" font-size="100" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#0a0a0a" stroke="#0a0a0a" stroke-width="3">${MARK}</text></svg>`,
-  );
-
 const css = `
 :root{--bg:#fff;--surface:#f6f6f4;--surface-2:#ededea;--ink:#0a0a0a;--ink-2:#5f5f5a;--ink-3:#9b9b95;--line:#e7e7e3;--ok:#1a7f4b;--ok-bg:#edf8f1;--warn-bg:#fff7e0;--err:#c0392b;--err-bg:#fdf1ef;
 --r:20px;--mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -139,8 +133,10 @@ ${description ? html`<meta name="description" content="${description}">` : ""}
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="${t.home.title}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="${FAVICON}">
-<link rel="apple-touch-icon" href="/flag.png">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>${raw(css)}</style>
 </head>
 <body>
