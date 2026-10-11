@@ -5,6 +5,7 @@
 // <script>s are plain strings and use {placeholders} replaced in the browser.
 // MCP tool descriptions (src/mcp.ts) are meant for the AI and stay in English.
 import { html } from "hono/html";
+import type { Ttl } from "../accounts";
 
 export type Lang = "en" | "tr";
 export const LANGS: readonly Lang[] = ["en", "tr"];
@@ -31,8 +32,8 @@ const en = {
   nav: { connect: "Connect", account: "Account", privacy: "Privacy", language: "Language" },
   footer: {
     open: "Open source · free · AGPL-3.0",
-    affiliation: "Not affiliated with any university, Moodle HQ or Anthropic.",
-    trademark: "Moodle™ is a trademark of Moodle Pty Ltd.",
+    affiliation: "Not affiliated with any university, Moodle HQ, Anthropic, OpenAI, Google or Anysphere.",
+    trademark: "Moodle™ is a trademark of Moodle Pty Ltd. Other names and logos belong to their owners.",
     disclaimer: "Disclaimer",
   },
   copy: "Copy",
@@ -46,6 +47,8 @@ const en = {
     title: "Your courses, in Claude",
     description: "Connect Claude to your university LMS. Read-only, open source, free.",
     h1: (rot: unknown) => html`Your courses,<br>in ${rot}.`,
+    /** Per-tool forms of the rotating name in `h1` (e.g. Turkish case suffixes), in the order of the tool list; undefined = the plain names. */
+    h1Forms: undefined as string[] | undefined,
     lead: (rot: unknown) =>
       html`Ask about deadlines, materials, assignments, grades and announcements from your university's LMS. ${rot} reads, never writes.`,
     connectCta: "Connect your LMS",
@@ -55,6 +58,13 @@ const en = {
     haveTitle: "Already have a key?",
     haveLead: "Add Mcp4Lms to your AI tool, then enter your key.",
     manage: html`Manage connected apps or delete everything under <a href="/account">Account</a>.`,
+  },
+
+  /** How long the stored LMS token stays usable. Keys are seconds, matching TTL_CHOICES in src/accounts.ts. */
+  ttl: {
+    label: "Access expires after",
+    options: { 86400: "24 hours", 604800: "7 days", 2592000: "30 days", 7776000: "90 days" } satisfies Record<Ttl, string>,
+    hint: "After that Claude loses access until you connect again. You can change this later under Account.",
   },
 
   picker: {
@@ -158,6 +168,7 @@ const en = {
       fileHead: "Mcp4Lms key",
       fileNote: "Keep this private. Anyone with it can read your courses through Mcp4Lms.",
       fileLost: "Lost it? Connect again at {url} to get a new one.",
+      expires: "Expires on {date}. Connecting again resets it.",
     },
   },
 
@@ -175,6 +186,7 @@ const en = {
     noKey: html`No key yet? <a href="/connect">Connect your LMS first</a> and you'll come back here.`,
     wrongKey: "That key doesn't work. Check that you copied all of it.",
     expired: "Your LMS connection has expired. Please connect your account again.",
+    keyExpired: "This connection has expired, as you chose when connecting. Connect your LMS again to get a new key.",
     invalidTitle: "Invalid request",
     invalid: (detail: string) => `The app sent an invalid authorization request. ${detail}`,
     failedTitle: "Something went wrong",
@@ -188,9 +200,13 @@ const en = {
     continue: "Continue",
     lostKey: html`Lost your key? <a href="/connect">Connect again</a> to get a new one.`,
     wrongKey: "That key doesn't work.",
+    keyExpired: "This connection has expired, as you chose when connecting. Connect your LMS again to get a new key.",
     lmsTitle: "Your LMS",
     connectedAs: (name: string, date: string) => html`Connected as <b>${name}</b> on ${date}.`,
     connectedOn: (date: string) => `Connected on ${date}.`,
+    expiresOn: (date: string) => html`Access expires on <b>${date}</b>.`,
+    expiryLead: "Change it: the new period counts from now.",
+    expiryUpdated: "Expiry updated.",
     appsTitle: "Connected apps",
     since: (date: string) => `since ${date}`,
     disconnect: "Disconnect",
@@ -225,6 +241,7 @@ const en = {
     know: [
       "Your key and the token can read your LMS data. Keep the key private.",
       "While Claude is using Mcp4Lms, our server handles your token in memory. You're trusting that the server runs the published open-source code.",
+      "When your connection expires (or you delete it), we delete the encrypted token and disconnect apps, but we do not revoke the app token on the LMS itself; you can end it there by logging out of all devices on your LMS.",
     ],
     knowAccount: html`Disconnect apps or delete everything under <a href="/account">Account</a>, any time.`,
     disclaimerTitle: "Disclaimer",
@@ -266,8 +283,8 @@ const tr: Strings = {
   nav: { connect: "Bağlan", account: "Hesap", privacy: "Gizlilik", language: "Dil" },
   footer: {
     open: "Açık kaynak · ücretsiz · AGPL-3.0",
-    affiliation: "Hiçbir üniversite, Moodle HQ veya Anthropic ile bağlantılı değildir.",
-    trademark: "Moodle™, Moodle Pty Ltd'nin tescilli markasıdır.",
+    affiliation: "Hiçbir üniversite, Moodle HQ, Anthropic, OpenAI, Google veya Anysphere ile bağlantılı değildir.",
+    trademark: "Moodle™, Moodle Pty Ltd'nin tescilli markasıdır. Diğer adlar ve logolar sahiplerine aittir.",
     disclaimer: "Sorumluluk reddi",
   },
   copy: "Kopyala",
@@ -278,18 +295,26 @@ const tr: Strings = {
     hint: "Durdurmak veya oynatmak için tıklayın",
   },
   home: {
-    title: "Derslerinizi Claude içinde görün",
+    title: "Derslerinizi Claude'a sorun",
     description: "Claude'u üniversitenizin LMS'ine bağlayın. Salt okunur, açık kaynak, ücretsiz.",
-    h1: (rot: unknown) => html`Derslerinizi<br>${rot} içinde görün.`,
+    h1: (rot: unknown) => html`Derslerinizi<br>${rot} sorun.`,
+    // Dative forms per tool, following vowel harmony; same order as the tool list in pages.ts.
+    h1Forms: ["Claude'a", "ChatGPT'ye", "Gemini'ye", "Cursor'a"],
     lead: (rot: unknown) =>
       html`Üniversitenizin LMS'ine bağlanarak son teslim tarihleri, materyaller, ödevler ve duyuruları yapay zekâ araçlarınıza bağlayın. ${rot} yalnızca okur, sizin adınıza yazma işlemi yapmaz.`,
     connectCta: "LMS'inizi bağlayın",
     haveKey: "Anahtarım var",
-    prompt: "Bu hafta neyin teslimi var?",
+    prompt: "Bugün hangi derslerin teslimi var?",
     facts: ["Salt okunur", "Açık kaynak", "Ücretsiz", "Verilerinizi istediğiniz zaman silin"],
     haveTitle: "Zaten anahtarınız var mı?",
     haveLead: "Mcp4Lms'i yapay zekâ aracınıza ekleyin, sonra anahtarınızı girin.",
     manage: html`Bağlı uygulamaları yönetmek veya her şeyi silmek için <a href="/account">Hesap</a> sayfasına gidin.`,
+  },
+
+  ttl: {
+    label: "Erişim süresi",
+    options: { 86400: "24 saat", 604800: "7 gün", 2592000: "30 gün", 7776000: "90 gün" },
+    hint: "Süre dolunca Claude, siz yeniden bağlanana kadar erişimini kaybeder. Bunu daha sonra Hesap sayfasından değiştirebilirsiniz.",
   },
 
   picker: {
@@ -394,6 +419,7 @@ const tr: Strings = {
       fileHead: "Mcp4Lms anahtarı",
       fileNote: "Bunu gizli tutun. Elinde bulunan herkes Mcp4Lms üzerinden derslerinizi okuyabilir.",
       fileLost: "Kaybettiniz mi? Yenisini almak için {url} adresinden yeniden bağlanın.",
+      expires: "Süresi {date} tarihinde dolar. Yeniden bağlanmak süreyi sıfırlar.",
     },
   },
 
@@ -411,6 +437,7 @@ const tr: Strings = {
     noKey: html`Henüz anahtarınız yok mu? <a href="/connect">Önce LMS'inizi bağlayın</a>, sonra buraya geri döneceksiniz.`,
     wrongKey: "Bu anahtar çalışmıyor. Tamamını kopyaladığınızdan emin olun.",
     expired: "LMS bağlantınızın süresi doldu. Lütfen hesabınızı yeniden bağlayın.",
+    keyExpired: "Bu bağlantının süresi, bağlanırken seçtiğiniz gibi doldu. Yeni bir anahtar almak için LMS'inizi yeniden bağlayın.",
     invalidTitle: "Geçersiz istek",
     invalid: (detail: string) => `Uygulama geçersiz bir yetkilendirme isteği gönderdi. ${detail}`,
     failedTitle: "Bir şeyler ters gitti",
@@ -424,9 +451,13 @@ const tr: Strings = {
     continue: "Devam et",
     lostKey: html`Anahtarınızı mı kaybettiniz? Yenisini almak için <a href="/connect">yeniden bağlanın</a>.`,
     wrongKey: "Bu anahtar çalışmıyor.",
+    keyExpired: "Bu bağlantının süresi, bağlanırken seçtiğiniz gibi doldu. Yeni bir anahtar almak için LMS'inizi yeniden bağlayın.",
     lmsTitle: "LMS'iniz",
     connectedAs: (name: string, date: string) => html`${date} tarihinde <b>${name}</b> olarak bağlandınız.`,
     connectedOn: (date: string) => `${date} tarihinde bağlandınız.`,
+    expiresOn: (date: string) => html`Erişim süresi <b>${date}</b> tarihinde dolar.`,
+    expiryLead: "Değiştirin: yeni süre şu andan itibaren sayılır.",
+    expiryUpdated: "Süre güncellendi.",
     appsTitle: "Bağlı uygulamalar",
     since: (date: string) => `${date} tarihinden beri`,
     disconnect: "Bağlantıyı kes",
@@ -462,6 +493,7 @@ const tr: Strings = {
     know: [
       "Anahtarınız ve belirteç LMS verilerinizi okuyabilir. Anahtarı gizli tutun.",
       "Claude Mcp4Lms'i kullanırken sunucumuz belirtecinizi bellekte işler. Sunucunun yayımlanan açık kaynak kodu çalıştırdığına güveniyorsunuz.",
+      "Bağlantınızın süresi dolduğunda (veya onu sildiğinizde) şifrelenmiş belirteci siler ve uygulamaların bağlantısını keseriz; ancak LMS'in kendisindeki uygulama belirtecini iptal etmeyiz. Onu orada sonlandırmak için LMS'inizde tüm cihazlardan çıkış yapın.",
     ],
     knowAccount: html`İstediğiniz zaman <a href="/account">Hesap</a> altından uygulamaların bağlantısını kesin veya her şeyi silin.`,
     disclaimerTitle: "Sorumluluk reddi",

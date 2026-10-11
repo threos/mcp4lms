@@ -7,7 +7,7 @@ Claude then gets **read-only** access to their courses, contents, deadlines, ass
 grades and announcements.
 
 One deployment serves one LMS. Mcp4Lms is not affiliated with or endorsed by any university,
-Moodle HQ or Anthropic.
+Moodle HQ, Anthropic, OpenAI, Google or Anysphere.
 
 ## How login works
 
@@ -38,12 +38,18 @@ Moodle HQ or Anthropic.
 
 | Where | What |
 |---|---|
-| D1 `accounts` | account id, LMS URL + user id, key verifier (HKDF), LMS token encrypted with AES-256-GCM under a key derived from the user's secret |
+| D1 `accounts` | account id, LMS URL + user id, key verifier (HKDF), LMS token encrypted with AES-256-GCM under a key derived from the user's secret, and the expiry the user chose (24 hours, 7, 30 or 90 days; default 90) |
 | KV `OAUTH_KV` | OAuth clients, grants and token hashes (`@cloudflare/workers-oauth-provider`); grant props are encrypted with token-derived keys |
 | Nowhere | the user key, the LMS password, plaintext LMS tokens, names, emails, course data |
 
 Losing the key is harmless: connecting again issues a new key, invalidates the old one and
 revokes all OAuth grants.
+
+**Expiry.** When connecting, the student picks how long the stored token stays usable (24 hours,
+7, 30 or 90 days; default 90) and can change it later on the Account page. After the chosen
+moment, `/authorize`, `/account` and `/mcp` refuse the account (the MCP endpoint answers with a
+"reconnect" error without calling the LMS), and the daily cron revokes its grants, which deletes
+the per-grant encrypted copies of the token, and deletes the row. Connecting again resets the expiry.
 
 ## Project layout
 
@@ -84,7 +90,7 @@ client (for example `npx @modelcontextprotocol/inspector`).
 
 ## Deploying your own instance
 
-1. Edit `vars` in `wrangler.jsonc` (`PUBLIC_URL`, `LMS_URL`).
+1. Edit `vars` in `wrangler.jsonc` (`PUBLIC_URL`, `LMS_URL`, `REPO_URL`).
 2. Create storage and put the ids in `wrangler.jsonc`:
    ```bash
    npx wrangler kv namespace create OAUTH_KV
@@ -108,11 +114,14 @@ Moodle app works).
 - File downloads aren't exposed; tools return file names and LMS links.
 - While a request is being served, the server handles the LMS token in memory. Users have
   to trust that the deployment runs this code.
+- Expiry (and deletion) does not revoke the app token on the LMS itself: that would need the
+  plaintext token, which the server does not have at expiry time. Users can end it by logging
+  out of all devices on the LMS.
 
 ## License and disclaimer
 
 Mcp4Lms is free software under the [GNU AGPL-3.0-or-later](LICENSE). If you run a modified
 version as a network service, the AGPL requires you to offer its source to your users.
 
-It is provided as is, without warranty, and is not affiliated with any university, Moodle HQ
-or any AI tool vendor. See the Privacy page of a running instance for the full disclaimer.
+It is provided as is, without warranty, and is not affiliated with any university, Moodle HQ,
+Anthropic, OpenAI, Google or Anysphere. See the Privacy page of a running instance for the full disclaimer.

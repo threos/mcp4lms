@@ -2,7 +2,15 @@
 import { Hono, type Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import type { AuthRequest, OAuthHelpers } from "@cloudflare/workers-oauth-provider";
-import { deleteAccount, listGrants, unlockAccount, upsertAccount } from "./accounts";
+import {
+  deleteAccount,
+  listGrants,
+  normalizeTtl,
+  setAccountExpiry,
+  unlockAccount,
+  upsertAccount,
+  type UnlockedAccount,
+} from "./accounts";
 import { decryptConnectPayload, md5Hex, sha256Hex } from "./crypto";
 import { MoodleClient, MoodleError, normalizeSiteUrl } from "./moodle";
 import type { GrantProps } from "./mcp";
@@ -69,8 +77,9 @@ app.post("/api/connect", async (c) => {
   const origin = c.req.header("Origin");
   if (origin && origin !== new URL(env.PUBLIC_URL).origin) return c.json({ error: "Bad origin" }, 403);
 
-  const body = await c.req.json<{ c?: string }>().catch(() => ({}) as { c?: string });
+  const body = await c.req.json<{ c?: string; ttl?: unknown }>().catch(() => ({}) as { c?: string; ttl?: unknown });
   if (!body.c || body.c.length > 1024) return c.json({ error: m.missing }, 400);
+  const ttl = normalizeTtl(body.ttl); // one of the four allowed lifetimes; anything else is the 90-day default
 
   let payload;
   try {
@@ -107,8 +116,15 @@ app.post("/api/connect", async (c) => {
     return c.json({ error: m.unverified }, 400);
   }
 
-  const { key, replaced } = await upsertAccount(env, env.OAUTH_PROVIDER, env.LMS_URL, info.userid, payload.t);
-  return c.json({ key, replaced, name: info.firstname || null });
+  const { key, replaced, expiresAt } = await upsertAccount(
+    env,
+    env.OAUTH_PROVIDER,
+    env.LMS_URL,
+    info.userid,
+    payload.t,
+    ttl,
+  );
+  return c.json({ key, replaced, name: info.firstname || null, expiresAt });
 });
 
 // --- OAuth consent ------------------------------------------------------------
@@ -152,8 +168,9 @@ app.post("/authorize", async (c) => {
       return new Response(null, { status: 302, headers: denied.headers });
     }
 
-    const account = await unlockAccount(env, String(form.get("key") ?? ""));
-    if (!account) return renderAuthorize(c, query, s.wrongKey);
+    const unlocked = await unlockAccount(env, String(form.get("key") ?? ""));
+    if (!unlocked.ok) return renderAuthorize(c, query, unlocked.reason === "expired" ? s.keyExpired : s.wrongKey);
+    const { account } = unlocked;
 
     try {
       await new MoodleClient(account.lmsUrl, account.lmsToken).siteInfo();
@@ -188,43 +205,63 @@ app.post("/authorize", async (c) => {
 
 // --- Account management ----------------------------------------------------------
 
-async function renderAccount(c: Ctx, key: string, notice?: string) {
+async function renderAccount(c: Ctx, key: string, account: UnlockedAccount, notice?: string) {
   const env = c.env;
-  const account = await unlockAccount(env, key);
-  if (!account) return null;
   let name: string | null = null;
   try {
     name = (await new MoodleClient(account.lmsUrl, account.lmsToken).siteInfo()).fullname;
   } catch {
-    // Expired LMS token: still let the user manage and delete their data.
+    // LMS rejected or unreachable: still let the user manage and delete their data.
   }
   const grants = await listGrants(env.OAUTH_PROVIDER, account.id);
-  return accountPage(view(c), { key, name, createdAt: account.createdAt, grants, notice });
+  return accountPage(view(c), {
+    key,
+    name,
+    createdAt: account.createdAt,
+    expiresAt: account.expiresAt,
+    grants,
+    notice,
+  });
 }
+
+/** The login form again, saying whether the key was wrong or the connection has expired. */
+const refuseAccount = (c: Ctx, reason: "invalid" | "expired") =>
+  c.html(accountLoginPage(view(c), reason === "expired" ? t(c).account.keyExpired : t(c).account.wrongKey), 400);
 
 app.get("/account", (c) => c.html(accountLoginPage(view(c))));
 
 app.post("/account", async (c) => {
   const key = String((await c.req.formData()).get("key") ?? "");
-  const html = await renderAccount(c, key);
-  return html ? c.html(html) : c.html(accountLoginPage(view(c), t(c).account.wrongKey), 400);
+  const u = await unlockAccount(c.env, key);
+  if (!u.ok) return refuseAccount(c, u.reason);
+  return c.html(await renderAccount(c, key, u.account));
 });
 
 app.post("/account/revoke", async (c) => {
   const form = await c.req.formData();
   const key = String(form.get("key") ?? "");
-  const account = await unlockAccount(c.env, key);
-  if (!account) return c.html(accountLoginPage(view(c), t(c).account.wrongKey), 400);
-  await c.env.OAUTH_PROVIDER.revokeGrant(String(form.get("grant") ?? ""), account.id);
-  return c.html((await renderAccount(c, key, t(c).account.revoked))!);
+  const u = await unlockAccount(c.env, key);
+  if (!u.ok) return refuseAccount(c, u.reason);
+  await c.env.OAUTH_PROVIDER.revokeGrant(String(form.get("grant") ?? ""), u.account.id);
+  return c.html(await renderAccount(c, key, u.account, t(c).account.revoked));
+});
+
+// Only moves the expiry; the key, the stored token and the LMS are not touched.
+app.post("/account/expiry", async (c) => {
+  const form = await c.req.formData();
+  const key = String(form.get("key") ?? "");
+  const u = await unlockAccount(c.env, key);
+  if (!u.ok) return refuseAccount(c, u.reason);
+  const expiresAt = await setAccountExpiry(c.env, u.account.id, normalizeTtl(form.get("ttl")));
+  return c.html(await renderAccount(c, key, { ...u.account, expiresAt }, t(c).account.expiryUpdated));
 });
 
 app.post("/account/delete", async (c) => {
   const key = String((await c.req.formData()).get("key") ?? "");
-  const account = await unlockAccount(c.env, key);
+  const u = await unlockAccount(c.env, key);
+  if (!u.ok) return refuseAccount(c, u.reason);
   const s = t(c).account;
-  if (!account) return c.html(accountLoginPage(view(c), s.wrongKey), 400);
-  await deleteAccount(c.env, c.env.OAUTH_PROVIDER, account.id);
+  await deleteAccount(c.env, c.env.OAUTH_PROVIDER, u.account.id);
   return c.html(messagePage(view(c), s.deletedTitle, s.deleted, { href: "/", label: s.backHome }));
 });
 

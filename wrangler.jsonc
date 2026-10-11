@@ -12,7 +12,8 @@
   // One deployment serves one LMS. Change these for your own instance.
   "vars": {
     "PUBLIC_URL": "https://mcp4lms.com",
-    "LMS_URL": "https://lms.ozyegin.edu.tr"
+    "LMS_URL": "https://lms.ozyegin.edu.tr",
+    "REPO_URL": "https://github.com/threos/mcp4lms"
   },
 
   // OAuth grants/tokens (managed by @cloudflare/workers-oauth-provider).

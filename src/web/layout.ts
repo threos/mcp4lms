@@ -43,6 +43,7 @@ p{margin:0 0 1em}
 .nav nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
 .nav nav a{color:var(--ink-2);text-decoration:none;padding:7px 12px;border-radius:999px;font-size:.95rem;transition:background .15s,color .15s}
 .nav nav a:hover,.nav nav a[aria-current]{background:var(--surface);color:var(--ink)}
+.nav nav a.gh{display:inline-flex;align-items:center;padding:7px 8px;margin-left:2px}.nav nav a.gh svg{display:block}
 .nav nav .lang{display:flex;gap:2px;margin-left:6px;padding-left:8px;border-left:1px solid var(--line)}
 .nav nav .lang a{padding-left:8px;padding-right:8px;font-size:.85rem;font-weight:560;letter-spacing:.02em}
 main{max-width:640px;margin:0 auto;padding:56px 20px 96px}
@@ -106,7 +107,7 @@ export function page(
     description?: string;
   },
 ) {
-  const { env: _env, lang, path } = v;
+  const { env, lang, path } = v;
   const t = strings[lang];
   const { title, body, script, wide, current, description } = opts;
   const nav = (href: string, label: string) =>
@@ -130,7 +131,7 @@ ${description ? html`<meta name="description" content="${description}">` : ""}
 <body>
 <header class="nav" id="nav"><div class="in">
   <a class="brand" href="/"><span class="mark" aria-hidden="true">${MARK}</span>Mcp4Lms</a>
-  <nav>${nav("/connect", t.nav.connect)}${nav("/account", t.nav.account)}${nav("/privacy", t.nav.privacy)}<span class="lang" role="group" aria-label="${t.nav.language}">${LANGS.map(langLink)}</span></nav>
+  <nav>${nav("/connect", t.nav.connect)}${nav("/account", t.nav.account)}${nav("/privacy", t.nav.privacy)}<span class="lang" role="group" aria-label="${t.nav.language}">${LANGS.map(langLink)}</span><a class="gh" href="${env.REPO_URL}" target="_blank" rel="noopener" aria-label="Source on GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/></svg></a></nav>
 </div></header>
 <main${wide ? raw(' class="wide"') : ""}>${body}</main>
 <footer>

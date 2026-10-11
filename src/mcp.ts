@@ -4,6 +4,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
+import { accountExpiresAt, isExpired } from "./accounts";
 import { MoodleClient, MoodleError, isoDate, stripHtml, stripToken } from "./moodle";
 
 export interface GrantProps extends Record<string, unknown> {
@@ -17,6 +18,34 @@ type ToolResult = { content: { type: "text"; text: string }[]; isError?: boolean
 
 function json(data: unknown): ToolResult {
   return { content: [{ type: "text", text: JSON.stringify(data, null, 1) }] };
+}
+
+/** What the AI reads when the stored token can no longer be used, whether the LMS said so or the user's chosen expiry passed. */
+const reconnectMessage = (env: Env) =>
+  `The LMS connection has expired. Ask the user to reconnect at ${env.PUBLIC_URL}/connect and then reconnect this connector.`;
+
+/**
+ * Answer for an expired (or deleted) account without touching the LMS. A tools/call
+ * gets the same tool error the tools return for a rejected token, so the AI can relay
+ * it; any other request gets a JSON-RPC error; a notification gets the usual 202.
+ */
+async function expiredResponse(request: Request, env: Env): Promise<Response> {
+  let id: unknown = null;
+  let method: unknown;
+  if (request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    if (body && typeof body === "object" && !Array.isArray(body)) {
+      id = (body as { id?: unknown }).id ?? null;
+      method = (body as { method?: unknown }).method;
+    }
+    if (typeof method === "string" && id === null) return new Response(null, { status: 202 });
+  }
+  const text = reconnectMessage(env);
+  const payload =
+    method === "tools/call"
+      ? { jsonrpc: "2.0", id, result: { content: [{ type: "text", text }], isError: true } }
+      : { jsonrpc: "2.0", id, error: { code: -32001, message: text } };
+  return Response.json(payload);
 }
 
 function buildServer(env: Env, props: GrantProps): McpServer {
@@ -35,7 +64,7 @@ function buildServer(env: Env, props: GrantProps): McpServer {
     } catch (e) {
       const msg =
         e instanceof MoodleError && e.isAuthError
-          ? `The LMS connection has expired. Ask the user to reconnect at ${env.PUBLIC_URL}/connect and then reconnect this connector.`
+          ? reconnectMessage(env)
           : `LMS error: ${e instanceof Error ? e.message : String(e)}`;
       return { content: [{ type: "text", text: msg }], isError: true };
     }
@@ -259,6 +288,9 @@ export const mcpApiHandler = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const props = (ctx as ExecutionContext & { props: GrantProps }).props;
     if (!props?.lmsToken) return new Response("Unauthorized", { status: 401 });
+    // The user's chosen expiry lives in D1, not in the grant's props, so a change on the
+    // account page (or the cron purge) takes effect on the next request. One lookup by id.
+    if (isExpired(await accountExpiresAt(env, props.accountId))) return expiredResponse(request, env);
     const server = buildServer(env, props);
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined, // stateless

@@ -4,6 +4,7 @@ import { MARK, jsData, page, type View } from "./layout";
 import { bookmarkletHref, connectScript } from "./bookmarklet";
 import { strings, type Strings } from "./i18n";
 import { universitiesFor, universityName } from "../universities";
+import { DEFAULT_TTL, TTL_CHOICES } from "../accounts";
 
 const mcpUrl = (env: Env) => `${env.PUBLIC_URL}/mcp`;
 /** Same in every language: step 3 tells users to click it, so it must match what their bookmarks bar shows. */
@@ -21,10 +22,19 @@ const rotateCss = `.rot{display:inline-block;position:relative;overflow:hidden;v
 .rot span{display:inline-block;transition:transform .45s cubic-bezier(.2,.7,.2,1),opacity .4s}
 .rot .leave{position:absolute;left:0;top:0;transform:translateY(-105%);opacity:0}
 .rot .enter{transform:translateY(105%);opacity:0}`;
+// Each .rot element may carry its own forms of the names in data-forms (JSON, same order as TOOLS); otherwise the plain names.
 const rotateJs = `const TN=${jsData(TOOLS.map((t) => t.name))};let ti=0;
-setInterval(()=>{ti=(ti+1)%TN.length;document.querySelectorAll('.rot').forEach(r=>{const cur=r.querySelector('span:not(.leave)');const nx=document.createElement('span');nx.textContent=TN[ti];nx.className='enter';r.appendChild(nx);
+setInterval(()=>{ti=(ti+1)%TN.length;document.querySelectorAll('.rot').forEach(r=>{const F=JSON.parse(r.dataset.forms||'null')||TN;const cur=r.querySelector('span:not(.leave)');const nx=document.createElement('span');nx.textContent=F[ti];nx.className='enter';r.appendChild(nx);
   if(cur)cur.classList.add('leave');requestAnimationFrame(()=>requestAnimationFrame(()=>nx.classList.remove('enter')));setTimeout(()=>cur&&cur.remove(),500)})},2600);`;
 const rot = html`<span class="rot"><span>${TOOLS[0].name}</span></span>`;
+/** Like `rot`, but cycles language-specific forms of the names (e.g. Turkish case suffixes), one per tool in TOOLS order. */
+const rotForms = (forms: string[]) => html`<span class="rot" data-forms="${jsData(forms)}"><span>${forms[0]}</span></span>`;
+
+/** Segmented control in the look of the AI-tool picker: a row of pill buttons, the chosen one filled. */
+const segCss = `.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;font-size:.92rem;font-weight:560;cursor:pointer;color:var(--ink-2);transition:border-color .15s,color .15s,background .15s}
+.seg button:hover{border-color:var(--ink-3)}
+.seg button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}`;
 
 const pickerCss = `.tools{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 18px}
 .tools button{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;font-size:.92rem;font-weight:560;cursor:pointer;color:var(--ink-2);transition:border-color .15s,color .15s,background .15s}
@@ -139,7 +149,7 @@ ${pickerJs}
       </style>
       <section class="hero">
         <img src="/flag.png" alt="" width="692" height="644">
-        <h1>${t.home.h1(rot)}</h1>
+        <h1>${t.home.h1(t.home.h1Forms ? rotForms(t.home.h1Forms) : rot)}</h1>
         <p class="lead">${t.home.lead(rot)}</p>
         <p class="row" style="justify-content:center;gap:12px"><a class="btn" href="/connect">${t.home.connectCta}</a><a class="btn ghost" href="#have">${t.home.haveKey}</a></p>
       </section>
@@ -182,6 +192,10 @@ function choose(id,remember){const u=unis.find(x=>x.id===id);if(!u)return;
 document.querySelectorAll('.uni[data-id]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.id,true)));
 $('change').addEventListener('click',e=>{e.preventDefault();$('chosen').classList.add('hidden');$('steps').classList.add('hidden');$('picker').classList.remove('hidden');try{localStorage.removeItem('m4l_uni')}catch(e){}});
 try{const r=localStorage.getItem('m4l_uni');if(r)choose(r,false)}catch(e){}
+const tb=document.querySelectorAll('#ttl button');
+function pickTtl(s,remember){tb.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ttl===String(s))));if(remember)try{localStorage.setItem('m4l_ttl',String(s))}catch(e){}}
+tb.forEach(b=>b.addEventListener('click',()=>pickTtl(b.dataset.ttl,true)));
+let tt=${DEFAULT_TTL};try{const r=localStorage.getItem('m4l_ttl');if(r&&[...tb].some(b=>b.dataset.ttl===r))tt=r}catch(e){}pickTtl(tt,false);
 const say=(t,cls)=>{hint.textContent=t;hint.className='hint'+(cls?' '+cls:'')};
 bm.addEventListener('click',e=>{e.preventDefault();bm.classList.remove('shake');void bm.offsetWidth;bm.classList.add('shake');say(T.clickedHere,'warn')});
 bm.addEventListener('dragstart',()=>{say(T.dragging);document.body.classList.add('dragging')});
@@ -211,6 +225,9 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
         .uni .soon{margin-left:auto;font-size:.8rem;color:var(--ink-3)}
         .chosen{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
         .chosen b{flex:1}
+        .chosen .ttl{flex-basis:100%;margin-top:6px;padding-top:14px;border-top:1px solid var(--line)}
+        .chosen .ttl label{display:block;font-size:.9rem;margin-bottom:8px}
+        ${raw(segCss)}
         ${raw(tutorialCss)}
         .tut{margin:0 0 20px}
         .stage{position:relative;margin:6px 0 10px;text-align:center}
@@ -263,6 +280,13 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
         <b id="uni-name"></b>
         <a href="#" id="change" class="small muted">${t.connect.change}</a>
         <p class="small muted" style="flex-basis:100%;margin:4px 0 0">${t.connect.affiliation(html`<span id="uni-aff"></span>`)}</p>
+        <div class="ttl">
+          <label id="ttl-label">${t.ttl.label}</label>
+          <div class="seg" id="ttl" role="group" aria-labelledby="ttl-label">
+            ${TTL_CHOICES.map((s) => html`<button type="button" data-ttl="${s}" aria-pressed="false">${t.ttl.options[s]}</button>`)}
+          </div>
+          <p class="small faint" style="margin:8px 0 0">${t.ttl.hint}</p>
+        </div>
       </div>
 
       <div class="steps hidden" id="steps" style="margin-top:16px">
@@ -326,10 +350,12 @@ let key='';
 async function run(){
   if(!c){show('failed');$('error').textContent=T.nothing;return}
   try{
-    const r=await fetch('/api/connect',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({c})});
+    let ttl=null;try{ttl=Number(localStorage.getItem('m4l_ttl'))||null}catch(e){}
+    const r=await fetch('/api/connect',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({c,ttl})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||T.wrong);
     key=d.key;$('key').textContent=key;$('hello').textContent=d.name?T.connectedName.replace('{name}',d.name.split(' ')[0]):T.connected;
+    if(d.expiresAt)$('expiry').textContent=T.expires.replace('{date}',new Date(d.expiresAt).toLocaleString(document.documentElement.lang,{dateStyle:'long',timeStyle:'short'}));
     if(d.replaced)$('replaced').classList.remove('hidden');
     let pending=null;try{pending=JSON.parse(localStorage.getItem('m4l_pending_auth')||'null')}catch(e){}
     if(pending&&Date.now()-pending.at<30*60*1000){$('continue').href=pending.url.split('#')[0]+'#key='+encodeURIComponent(key);$('pending').classList.remove('hidden');$('manual').classList.add('hidden')}
@@ -378,6 +404,7 @@ run();
           <label class="check"><input type="checkbox" id="saved"> ${t.finish.saved}</label>
           <p id="save-warn" class="note small hidden" style="margin-top:10px">${t.finish.saveFirst}</p>
           <p class="small faint" style="margin:12px 0 0">${t.finish.lost}</p>
+          <p class="small faint" id="expiry" style="margin:4px 0 0"></p>
         </div>
         <div class="card soft dim" id="next">
           <div id="pending" class="hidden">
@@ -474,23 +501,31 @@ export function accountPage(
     key: string;
     name: string | null;
     createdAt: number;
+    expiresAt: number;
     grants: { id: string; clientName: string; createdAt: number }[];
     notice?: string;
   },
 ) {
   const t = strings[v.lang];
-  const { key, name, createdAt, grants, notice } = opts;
+  const { key, name, createdAt, expiresAt, grants, notice } = opts;
   const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
   return page(v, {
     title: t.account.title,
     current: "/account",
     body: html`
-      <style>.app{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);margin:0}.app:first-of-type{border-top:0;padding-top:0}</style>
+      <style>.app{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);margin:0}.app:first-of-type{border-top:0;padding-top:0}
+      ${raw(segCss)}</style>
       <h1>${t.account.title}</h1>
       ${notice ? html`<p class="note ok">${notice}</p>` : ""}
       <div class="card soft">
         <h2>${t.account.lmsTitle}</h2>
         <p class="muted" style="margin:0">${name ? t.account.connectedAs(name, day(createdAt)) : t.account.connectedOn(day(createdAt))}</p>
+        <p class="muted" style="margin:6px 0 0">${t.account.expiresOn(day(expiresAt))}</p>
+        <form method="post" action="/account/expiry" style="margin-top:14px">
+          <input type="hidden" name="key" value="${key}">
+          <p class="small muted" style="margin:0 0 8px">${t.account.expiryLead}</p>
+          <div class="seg">${TTL_CHOICES.map((s) => html`<button type="submit" name="ttl" value="${s}">${t.ttl.options[s]}</button>`)}</div>
+        </form>
       </div>
       <div class="card">
         <h2>${t.account.appsTitle}</h2>
