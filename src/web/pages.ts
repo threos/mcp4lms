@@ -280,6 +280,7 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
       </style>
       <h1>${t.connect.h1}</h1>
       <p class="lead">${t.connect.lead}</p>
+      <p class="note small">${t.connect.experimental}</p>
       <p id="mobile" class="note hidden">${t.connect.mobile}</p>
       <div class="card" id="picker">
         <h2 id="pick-title">${t.connect.pickTitle}</h2>
@@ -647,7 +648,7 @@ export function privacyPage(v: View) {
       </style>
       <h1>${t.privacy.title}</h1>
       <p class="lead">${t.privacy.lead}</p>
-      <section class="q crypto"><h2>${t.privacy.cryptoTitle}</h2>
+      <section class="q crypto" id="encryption"><h2>${t.privacy.cryptoTitle}</h2>
         <p>${t.privacy.cryptoLead}</p>
         <h3>${t.privacy.connectTitle}</h3>
         <figure class="diagram"><img src="/diagrams/connect-${v.lang}.svg" alt="${t.privacy.connectAlt}" loading="lazy"></figure>
