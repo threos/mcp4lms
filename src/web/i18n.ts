@@ -278,11 +278,11 @@ const tr: Strings = {
     hint: "Durdurmak veya oynatmak için tıklayın",
   },
   home: {
-    title: "Dersleriniz, Claude ile",
+    title: "Derslerinizi Claude içinde görün",
     description: "Claude'u üniversitenizin LMS'ine bağlayın. Salt okunur, açık kaynak, ücretsiz.",
-    h1: (rot: unknown) => html`Dersleriniz,<br>${rot} ile.`,
+    h1: (rot: unknown) => html`Derslerinizi<br>${rot} içinde görün.`,
     lead: (rot: unknown) =>
-      html`Üniversitenizin LMS'indeki son teslim tarihlerini, materyalleri, ödevleri, notları ve duyuruları sorun. ${rot} yalnızca okur, asla yazmaz.`,
+      html`Üniversitenizin LMS'ine bağlanarak son teslim tarihleri, materyaller, ödevler ve duyuruları yapay zekâ araçlarınıza bağlayın. ${rot} yalnızca okur, sizin adınıza yazma işlemi yapmaz.`,
     connectCta: "LMS'inizi bağlayın",
     haveKey: "Anahtarım var",
     prompt: "Bu hafta neyin teslimi var?",
