@@ -41,7 +41,7 @@ const en = {
 
   tutorial: {
     caption: "The whole thing, in 22 seconds",
-    demoCaption: "Asking Claude about a course (sped up)",
+    demoCaption: "Ask Claude about a course",
     hint: "Click to pause or play",
   },
   home: {
@@ -296,7 +296,7 @@ const tr: Strings = {
 
   tutorial: {
     caption: "Tamamı, 22 saniyede",
-    demoCaption: "Claude'a bir ders hakkında sormak (hızlandırılmış)",
+    demoCaption: "Claude'a bir ders hakkında soru sorun",
     hint: "Durdurmak veya oynatmak için tıklayın",
   },
   home: {
