@@ -415,7 +415,7 @@ const tr: Strings = {
   copied: "Kopyalandı",
 
   tutorial: {
-    caption: "Tamamı, 22 saniyede",
+    caption: "Hızlıca bağlayın",
     demoCaption: "Claude'a bir ders hakkında soru sorun",
     hint: "Durdurmak veya oynatmak için tıklayın",
   },
