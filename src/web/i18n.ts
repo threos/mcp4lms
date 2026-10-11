@@ -216,16 +216,20 @@ const en = {
     deleteTitle: "Delete everything",
     deleteLead: "Disconnects every app and deletes your encrypted LMS token and account. You can always connect again.",
     deleteButton: "Delete everything",
-    deleteNote: "To also end the app session on your LMS itself, log out of all devices there.",
+    revokeLead:
+      "This doesn't revoke the token on your LMS. To end it there too, reset it on your LMS after deleting here. This may sign you out of the Moodle app.",
+    revokeButton: "Revoke the token on your LMS ↗",
     revoked: "App disconnected.",
     deletedTitle: "Deleted",
     deleted: "Your account, encrypted token and all app connections are gone.",
+    deletedRevoke:
+      "The token itself still works on your LMS until you revoke it there. Resetting it may sign you out of the Moodle app.",
     backHome: "Back to home",
   },
 
   privacy: {
     title: "Privacy",
-    lead: "In short: we store an encrypted token, you hold the key, and Claude can only read.",
+    lead: "In short: we store an encrypted token, you hold the key, and Mcp4Lms only lets Claude read.",
     cryptoTitle: "Encryption and access",
     cryptoLead:
       "Your LMS token is what lets Mcp4Lms read your courses. Here is where it goes and who can see it.",
@@ -273,13 +277,18 @@ const en = {
       "Your LMS or Microsoft password. You log in to your LMS on its own site, in your own browser. The Connect bookmark only asks the LMS for an app token, the same kind the official Moodle app uses, and encrypts it before sending it to us.",
     canTitle: "What Claude can do",
     can: "Read your courses, course contents, deadlines, assignments and submission status, grades, announcements, and the text of course files (PDF, Word, PowerPoint, plain text). Mcp4Lms allows only a fixed set of read-only LMS functions. Claude cannot submit assignments, post, send messages or change anything.",
+    tokenTitle: "What the LMS token itself can do",
+    token:
+      "It's the same kind of token the official Moodle app uses, so technically it can do anything you can do in that app, such as submitting assignments or sending messages. Mcp4Lms only ever uses it for a fixed set of read-only calls. Deleting your data here, or letting it expire, doesn't revoke it on your LMS.",
+    tokenReset: (url: string) =>
+      html`To revoke it, open <a href="${url}" target="_blank" rel="noopener noreferrer">Security keys on your LMS</a> and reset the key for the Moodle mobile service. This may sign you out of the Moodle app.`,
     knowTitle: "What you should know",
     know: [
       "When the AI reads a course file, its contents pass through our server to the AI tool once, and are never stored or logged.",
       "Links outside the LMS are opened only after you confirm them in the conversation, and never with your LMS credentials.",
       "Your key and your token give access to your LMS data. Don't share your key with anyone.",
       "While Claude is using Mcp4Lms, our server handles your token in memory only. At that point you are trusting that the server runs the published open-source code.",
-      "When your connection expires, or you delete it, we delete the encrypted token and remove app access. We don't revoke the app token on the LMS itself; to end it there, log out of all devices on your LMS.",
+      "When your connection expires, or you delete it, we delete the encrypted token and remove app access. We don't revoke the app token on the LMS itself; see above for how to revoke it there.",
     ],
     knowAccount: html`You can disconnect apps or delete all your data at any time under <a href="/account">Account</a>.`,
     securityTitle: "Security contact and disclosure",
@@ -292,7 +301,8 @@ const en = {
     optOut: [
       html`Open <a href="/account">Account</a>, enter your key, and disconnect individual apps or delete everything. Deletion removes your account, the encrypted token and all app connections immediately.`,
       "Lost your key? Connect again from your LMS. This issues a new key and invalidates the old one, and you can then delete your account from the Account page.",
-      "To also end the app token on your LMS, log out of all devices there.",
+      (url: string) =>
+        html`To also end the app token on your LMS, reset it under <a href="${url}" target="_blank" rel="noopener noreferrer">Security keys</a> there. This may sign you out of the Moodle app.`,
       "If you do nothing, your data is deleted automatically when the access period you chose expires.",
       html`If you administer an LMS and want it excluded from Mcp4Lms, email <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a>.`,
     ],
@@ -526,16 +536,20 @@ const tr: Strings = {
     deleteLead:
       "Tüm uygulamaların bağlantısını keser; şifrelenmiş LMS tokeninizi ve hesabınızı siler. İstediğiniz zaman yeniden bağlanabilirsiniz.",
     deleteButton: "Her şeyi sil",
-    deleteNote: "LMS'inizdeki uygulama oturumunu da sonlandırmak için orada tüm cihazlardan çıkış yapın.",
+    revokeLead:
+      "Bu işlem LMS'inizdeki tokeni iptal etmez. Onu da sonlandırmak için burada sildikten sonra tokeni LMS'inizde sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.",
+    revokeButton: "Tokeni LMS'inizde iptal edin ↗",
     revoked: "Uygulamanın bağlantısı kesildi.",
     deletedTitle: "Silindi",
     deleted: "Hesabınız, şifrelenmiş tokeniniz ve tüm uygulama bağlantılarınız silindi.",
+    deletedRevoke:
+      "Tokenin kendisi, siz LMS'inizde iptal edene kadar orada çalışmaya devam eder. Sıfırlamak, Moodle uygulamasından çıkış yapmanıza neden olabilir.",
     backHome: "Ana sayfaya dön",
   },
 
   privacy: {
     title: "Gizlilik",
-    lead: "Özetle: şifrelenmiş bir token saklarız, anahtar sizde kalır ve Claude yalnızca okuma yapabilir.",
+    lead: "Özetle: şifrelenmiş bir token saklarız, anahtar sizde kalır ve Mcp4Lms, Claude'un yalnızca okuma yapmasına izin verir.",
     cryptoTitle: "Şifreleme ve erişim",
     cryptoLead:
       "LMS tokeniniz, Mcp4Lms'in derslerinizi okumasını sağlayan şeydir. Aşağıda tokenin nereye gittiğini ve kimin görebildiğini bulabilirsiniz.",
@@ -583,13 +597,18 @@ const tr: Strings = {
       "LMS veya Microsoft parolanız. LMS'e kendi tarayıcınızdan, LMS'in kendi sitesi üzerinden giriş yaparsınız. Bağlan yer imi LMS'ten yalnızca resmî Moodle uygulamasının kullandığı türde bir uygulama tokeni ister ve bu tokeni bize göndermeden önce şifreler.",
     canTitle: "Claude'un yapabildikleri",
     can: "Dersleri, ders içeriklerini, son teslim tarihlerini, ödevleri ve teslim durumunu, notları, duyuruları ve ders dosyalarının metnini (PDF, Word, PowerPoint, düz metin) okuyabilir. Mcp4Lms yalnızca önceden belirlenmiş, salt okunur LMS işlevlerine izin verir. Claude ödev teslim edemez, gönderi paylaşamaz, mesaj gönderemez ve hiçbir veriyi değiştiremez.",
+    tokenTitle: "LMS tokeninin kendisi neler yapabilir?",
+    token:
+      "Bu, resmî Moodle uygulamasının kullandığı türde bir tokendir; yani teknik olarak o uygulamada yapabildiğiniz her şeyi, örneğin ödev teslim etmeyi veya mesaj göndermeyi yapabilir. Mcp4Lms onu yalnızca önceden belirlenmiş salt okunur çağrılar için kullanır. Verilerinizi burada silmeniz veya sürenin dolması, tokeni LMS'inizde iptal etmez.",
+    tokenReset: (url: string) =>
+      html`İptal etmek için <a href="${url}" target="_blank" rel="noopener noreferrer">LMS'inizdeki Güvenlik anahtarları</a> sayfasını açın ve Moodle mobil hizmetine ait anahtarı sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.`,
     knowTitle: "Bilmeniz gerekenler",
     know: [
       "Yapay zekâ bir ders dosyasını okuduğunda dosya içeriği sunucumuz üzerinden yapay zekâ aracına yalnızca bir kez aktarılır; saklanmaz ve günlüğe yazılmaz.",
       "LMS dışındaki bağlantılar yalnızca siz sohbette onayladıktan sonra açılır ve bu sırada LMS kimlik bilgileriniz hiçbir zaman kullanılmaz.",
       "Anahtarınız ve tokeniniz LMS verilerinize erişim sağlar. Anahtarınızı kimseyle paylaşmayın.",
       "Claude Mcp4Lms'i kullanırken sunucumuz tokeninizi yalnızca bellekte işler. Bu noktada sunucunun yayımlanmış açık kaynak kodu çalıştırdığına güvenmiş olursunuz.",
-      "Bağlantınızın süresi dolduğunda veya bağlantıyı sildiğinizde şifrelenmiş tokeni siler ve uygulamaların erişimini kaldırırız; ancak LMS üzerindeki uygulama tokenini iptal etmeyiz. Bu tokeni sonlandırmak için LMS'inizde tüm cihazlardan çıkış yapın.",
+      "Bağlantınızın süresi dolduğunda veya bağlantıyı sildiğinizde şifrelenmiş tokeni siler ve uygulamaların erişimini kaldırırız; ancak LMS üzerindeki uygulama tokenini iptal etmeyiz. Orada nasıl iptal edeceğinizi yukarıda bulabilirsiniz.",
     ],
     knowAccount: html`Uygulamaların bağlantısını kesmek veya tüm verilerinizi silmek için istediğiniz zaman <a href="/account">Hesap</a> sayfasını kullanabilirsiniz.`,
     securityTitle: "Güvenlik iletişimi ve açık bildirimi",
@@ -602,7 +621,8 @@ const tr: Strings = {
     optOut: [
       html`<a href="/account">Hesap</a> sayfasını açın, anahtarınızı girin ve tek tek uygulamaların bağlantısını kesin veya her şeyi silin. Silme işlemi hesabınızı, şifrelenmiş tokeni ve tüm uygulama bağlantılarını anında kaldırır.`,
       "Anahtarınızı mı kaybettiniz? LMS'inizden yeniden bağlanın. Bu işlem yeni bir anahtar verir ve eskisini geçersiz kılar; ardından hesabınızı Hesap sayfasından silebilirsiniz.",
-      "LMS üzerindeki uygulama tokenini de sonlandırmak için LMS'inizde tüm cihazlardan çıkış yapın.",
+      (url: string) =>
+        html`LMS üzerindeki uygulama tokenini de sonlandırmak için onu LMS'inizdeki <a href="${url}" target="_blank" rel="noopener noreferrer">Güvenlik anahtarları</a> sayfasından sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.`,
       "Hiçbir şey yapmazsanız verileriniz, seçtiğiniz erişim süresi dolduğunda otomatik olarak silinir.",
       html`Bir LMS yönetiyorsanız ve Mcp4Lms kapsamı dışında kalmasını istiyorsanız <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın.`,
     ],

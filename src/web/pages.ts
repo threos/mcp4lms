@@ -7,6 +7,8 @@ import { universitiesFor, universityName } from "../universities";
 import { DEFAULT_TTL, TTL_CHOICES } from "../accounts";
 
 const mcpUrl = (env: Env) => `${env.PUBLIC_URL}/mcp`;
+/** Moodle's "Security keys" page, where the student can reset or delete the app token at the LMS itself. */
+const lmsTokenUrl = (env: Env) => `${env.LMS_URL.replace(/\/+$/, "")}/user/managetoken.php`;
 /** Same in every language: step 3 tells users to click it, so it must match what their bookmarks bar shows. */
 const BOOKMARK_NAME = `${MARK} Connect Mcp4Lms`;
 
@@ -480,6 +482,24 @@ document.querySelector('form').addEventListener('submit',e=>{if(e.submitter&&e.s
   });
 }
 
+/** Opens Moodle's Security keys page in a new tab, where the token can be reset at the LMS itself. */
+const revokeLink = (v: View) =>
+  html`<a class="btn ghost sm" href="${lmsTokenUrl(v.env)}" target="_blank" rel="noopener noreferrer">${strings[v.lang].account.revokeButton}</a>`;
+
+/** After deleting the account: the token still works at the LMS until the student revokes it there. */
+export function deletedPage(v: View) {
+  const t = strings[v.lang].account;
+  return page(v, {
+    title: t.deletedTitle,
+    body: html`<h1>${t.deletedTitle}</h1><p class="lead">${t.deleted}</p>
+      <div class="card soft">
+        <p class="muted" style="margin:0 0 12px">${t.deletedRevoke}</p>
+        ${revokeLink(v)}
+      </div>
+      <p style="margin-top:24px"><a class="btn" href="/">${t.backHome}</a></p>`,
+  });
+}
+
 export function messagePage(v: View, title: string, message: string, link?: { href: string; label: string }) {
   return page(v, {
     title,
@@ -564,7 +584,8 @@ export function accountPage(
           <input type="hidden" name="key" value="${key}">
           <button class="btn danger" type="submit">${t.account.deleteButton}</button>
         </form>
-        <p class="small faint" style="margin:14px 0 0">${t.account.deleteNote}</p>
+        <p class="small muted" style="margin:18px 0 10px">${t.account.revokeLead}</p>
+        ${revokeLink(v)}
       </div>`,
   });
 }
@@ -632,6 +653,10 @@ export function privacyPage(v: View) {
       <section class="q"><h2>${t.privacy.canTitle}</h2>
         <p>${t.privacy.can}</p>
       </section>
+      <section class="q" id="lms-token"><h2>${t.privacy.tokenTitle}</h2>
+        <p>${t.privacy.token}</p>
+        <p>${t.privacy.tokenReset(lmsTokenUrl(v.env))}</p>
+      </section>
       <section class="q"><h2>${t.privacy.knowTitle}</h2>
         <ul>
           ${t.privacy.know.map((s) => html`<li>${s}</li>`)}
@@ -642,7 +667,7 @@ export function privacyPage(v: View) {
         ${t.privacy.security.map((p) => html`<p>${typeof p === "function" ? p(v.env.REPO_URL) : p}</p>`)}
       </section>
       <section class="q" id="opt-out"><h2>${t.privacy.optOutTitle}</h2>
-        <ol>${t.privacy.optOut.map((s) => html`<li>${s}</li>`)}</ol>
+        <ol>${t.privacy.optOut.map((s) => html`<li>${typeof s === "function" ? s(lmsTokenUrl(v.env)) : s}</li>`)}</ol>
       </section>
       <section class="q" id="disclaimer"><h2>${t.privacy.disclaimerTitle}</h2>
         ${t.privacy.disclaimer.map((p) => html`<p>${p}</p>`)}

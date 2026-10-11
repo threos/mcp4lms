@@ -24,6 +24,7 @@ import {
   accountPage,
   authorizePage,
   connectPage,
+  deletedPage,
   finishPage,
   homePage,
   messagePage,
@@ -307,9 +308,8 @@ app.post("/account/delete", async (c) => {
   const key = String((await c.req.formData()).get("key") ?? "");
   const u = await unlockAccount(c.env, key);
   if (!u.ok) return refuseAccount(c, u.reason);
-  const s = t(c).account;
   await deleteAccount(c.env, c.env.OAUTH_PROVIDER, u.account.id);
-  return c.html(messagePage(view(c), s.deletedTitle, s.deleted, { href: "/", label: s.backHome }));
+  return c.html(deletedPage(view(c)));
 });
 
 app.notFound((c) => {
