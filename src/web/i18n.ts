@@ -41,6 +41,7 @@ const en = {
 
   tutorial: {
     caption: "The whole thing, in 22 seconds",
+    demoCaption: "Asking Claude about a course (sped up)",
     hint: "Click to pause or play",
   },
   home: {
@@ -98,7 +99,8 @@ const en = {
     mobile: "You seem to be on a phone. Do this step on a computer. Afterwards Claude works on your phone too.",
     pickTitle: "Choose your university",
     pickLead: "Mcp4Lms connects to your university's LMS. Pick yours.",
-    notAvailable: "not yet available",
+    notAvailable: "Coming soon",
+    select: "Select",
     change: "Change",
     affiliation: (uni: unknown) =>
       html`Mcp4Lms is an independent open-source project. It is not affiliated with or endorsed by ${uni}.`,
@@ -294,6 +296,7 @@ const tr: Strings = {
 
   tutorial: {
     caption: "Tamamı, 22 saniyede",
+    demoCaption: "Claude'a bir ders hakkında sormak (hızlandırılmış)",
     hint: "Durdurmak veya oynatmak için tıklayın",
   },
   home: {
@@ -351,7 +354,8 @@ const tr: Strings = {
     mobile: "Telefonda görünüyorsunuz. Bu adımı bilgisayarda yapın. Sonrasında Claude telefonunuzda da çalışır.",
     pickTitle: "Üniversitenizi seçin",
     pickLead: "Mcp4Lms üniversitenizin LMS'ine bağlanır. Sizinkini seçin.",
-    notAvailable: "henüz mevcut değil",
+    notAvailable: "Yakında",
+    select: "Seç",
     change: "Değiştir",
     affiliation: (uni: unknown) =>
       html`Mcp4Lms bağımsız bir açık kaynak projesidir. ${uni} ile bağlantılı değildir ve onun tarafından onaylanmamıştır.`,

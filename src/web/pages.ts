@@ -54,18 +54,23 @@ bs.forEach(b=>b.addEventListener('click',()=>pick(b.dataset.tool,true)));let r='
 document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>copy(b.dataset.copy,b)))})();`;
 
 const tutorialCss = `.tut{margin:0;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:#000;position:relative;cursor:pointer}
-.tut video{display:block;width:100%;height:auto;aspect-ratio:1280/868}
+.tut video{display:block;width:100%;height:auto}
 .tut figcaption{position:absolute;left:12px;bottom:12px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.92);color:var(--ink);font-size:.82rem;font-weight:560;pointer-events:none}
 .tut.paused::after{content:"▶";position:absolute;inset:0;display:grid;place-items:center;font-size:2.2rem;color:#fff;background:rgba(0,0,0,.25);pointer-events:none}`;
 const tutorialJs = `(function(){const f=document.querySelector('.tut');if(!f)return;const v=f.querySelector('video');
 const still=matchMedia('(prefers-reduced-motion: reduce)').matches;if(still){v.removeAttribute('autoplay');f.classList.add('paused')}
 f.addEventListener('click',()=>{if(v.paused){v.play();f.classList.remove('paused')}else{v.pause();f.classList.add('paused')}});
 if('IntersectionObserver' in window&&!still)new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){if(!f.classList.contains('paused'))v.play()}else v.pause()}),{threshold:.3}).observe(f)})();`;
-/** Muted, looping walkthrough video (public/tutorial.mp4) with a poster frame. */
-function tutorial(t: Strings) {
+const videos = {
+  tutorial: { src: "/tutorial.mp4", poster: "/tutorial-poster.jpg", width: 1280, height: 868 },
+  demo: { src: "/demo.mp4", poster: "/demo-poster.jpg", width: 1280, height: 876 },
+};
+/** Muted, looping video with a poster frame: the setup walkthrough or the Claude demo (files in public/). */
+function tutorial(t: Strings, kind: keyof typeof videos = "tutorial") {
+  const v = videos[kind];
   return html`<figure class="tut" title="${t.tutorial.hint}">
-    <video muted loop playsinline autoplay preload="metadata" poster="/tutorial-poster.jpg" width="1280" height="868"><source src="/tutorial.mp4" type="video/mp4"></video>
-    <figcaption>${t.tutorial.caption}</figcaption>
+    <video muted loop playsinline autoplay preload="metadata" poster="${v.poster}" width="${v.width}" height="${v.height}" style="aspect-ratio:${v.width}/${v.height}"><source src="${v.src}" type="video/mp4"></video>
+    <figcaption>${kind === "demo" ? t.tutorial.demoCaption : t.tutorial.caption}</figcaption>
   </figure>`;
 }
 
@@ -155,7 +160,7 @@ ${pickerJs}
       </section>
       <div class="prompt" aria-hidden="true"><span class="mark">${MARK}</span><span class="t">${t.home.prompt}</span><span class="go">↑</span></div>
 
-      ${tutorial(t)}
+      ${tutorial(t, "demo")}
 
       <p class="facts">${t.home.facts.map((f) => html`<span>${f}</span>`)}</p>
 
@@ -185,9 +190,9 @@ const isMobile=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)&&!/Macint
 document.querySelectorAll('.shortcut').forEach(e=>e.innerHTML=isMac?'<kbd>⌘</kbd> <kbd>Shift</kbd> <kbd>B</kbd>':'<kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd>');
 if(isMobile)document.getElementById('mobile').classList.remove('hidden');
 const $=id=>document.getElementById(id);const bm=$('bm'),hint=$('hint'),slot=$('slot');
-const unis=${jsData(unis.filter((u) => u.available).map((u) => ({ id: u.id, name: u.name })))};
+const unis=${jsData(unis.filter((u) => u.available).map((u) => ({ id: u.id, name: u.name, short: u.short })))};
 function choose(id,remember){const u=unis.find(x=>x.id===id);if(!u)return;
-  $('picker').classList.add('hidden');$('chosen').classList.remove('hidden');$('uni-name').textContent=u.name;$('uni-aff').textContent=u.name;
+  $('picker').classList.add('hidden');$('chosen').classList.remove('hidden');$('uni-name').textContent=u.name;$('uni-short').textContent=u.short;$('uni-aff').textContent=u.name;
   $('steps').classList.remove('hidden');if(remember)try{localStorage.setItem('m4l_uni',id)}catch(e){}}
 document.querySelectorAll('.uni[data-id]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.id,true)));
 $('change').addEventListener('click',e=>{e.preventDefault();$('chosen').classList.add('hidden');$('steps').classList.add('hidden');$('picker').classList.remove('hidden');try{localStorage.removeItem('m4l_uni')}catch(e){}});
@@ -216,13 +221,20 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
     script,
     body: html`
       <style>
-        .uni{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
-        .uni+.uni{margin-top:8px}
-        .uni:hover:not([disabled]){border-color:var(--ink)}
-        .uni[disabled]{cursor:default;color:var(--ink-3)}
-        .uni .mark{font-size:1.5rem;line-height:1;-webkit-text-stroke:.5px currentColor}
-        .uni b{display:block}.uni small{color:var(--ink-3);font-family:var(--mono)}
-        .uni .soon{margin-left:auto;font-size:.8rem;color:var(--ink-3)}
+        .uni{display:flex;align-items:center;gap:16px;width:100%;min-height:76px;text-align:left;padding:14px 16px 14px 14px;border:1.5px solid var(--line);border-radius:16px;background:#fff;color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+        [role=listitem]+[role=listitem]{margin-top:10px}
+        .uni:hover:not([disabled]){border-color:var(--ink);box-shadow:0 12px 24px -18px rgba(0,0,0,.45);transform:translateY(-1px)}
+        .uni:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+        .uni .logo,.chosen .logo{flex:none;width:48px;height:48px;border-radius:12px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.95rem;letter-spacing:-.01em}
+        .uni .info{flex:1;min-width:0}
+        .uni b{display:block;font-size:1.1rem;line-height:1.3}
+        .uni small{display:block;color:var(--ink-2);font-size:.9rem;overflow-wrap:anywhere}
+        .uni .go{flex:none;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;background:var(--ink);color:#fff;font-weight:600;font-size:.92rem}
+        .uni[disabled]{cursor:not-allowed;background:var(--surface);border-style:dashed}
+        .uni[disabled] .logo{background:var(--surface-2);color:var(--ink-2)}
+        .uni .soon{flex:none;padding:5px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font-size:.82rem;font-weight:560}
+        @media (max-width:520px){.uni .go .lbl{display:none}.uni .go{padding:9px 12px}}
+        @media (prefers-reduced-motion:reduce){.uni{transition:none}.uni:hover:not([disabled]){transform:none}}
         .chosen{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
         .chosen b{flex:1}
         .chosen .ttl{flex-basis:100%;margin-top:6px;padding-top:14px;border-top:1px solid var(--line)}
@@ -264,19 +276,22 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
       <h1>${t.connect.h1}</h1>
       <p class="lead">${t.connect.lead}</p>
       <p id="mobile" class="note hidden">${t.connect.mobile}</p>
-      ${tutorial(t)}
-
       <div class="card" id="picker">
-        <h2>${t.connect.pickTitle}</h2>
+        <h2 id="pick-title">${t.connect.pickTitle}</h2>
         <p class="muted small">${t.connect.pickLead}</p>
+        <div role="list" aria-labelledby="pick-title">
         ${unis.map(
-          (u) => html`<button type="button" class="uni" ${u.available ? html`data-id="${u.id}"` : raw("disabled")}>
-            <span class="mark" aria-hidden="true">${MARK}</span><span><b>${u.name}</b><small>${new URL(u.lmsUrl).host}</small></span>
-            ${u.available ? "" : html`<span class="soon">${t.connect.notAvailable}</span>`}</button>`,
+          (u) => html`<div role="listitem"><button type="button" class="uni" ${u.available ? html`data-id="${u.id}"` : raw("disabled")}>
+            <span class="logo" aria-hidden="true">${u.short}</span>
+            <span class="info"><b>${u.name}</b><small>${new URL(u.lmsUrl).host}</small></span>
+            ${u.available
+              ? html`<span class="go"><span class="lbl">${t.connect.select}</span><span aria-hidden="true">→</span></span>`
+              : html`<span class="soon">${t.connect.notAvailable}</span>`}</button></div>`,
         )}
+        </div>
       </div>
       <div class="card soft chosen hidden" id="chosen">
-        <span class="mark" style="font-size:1.5rem;-webkit-text-stroke:.5px currentColor" aria-hidden="true">${MARK}</span>
+        <span class="logo" id="uni-short" aria-hidden="true"></span>
         <b id="uni-name"></b>
         <a href="#" id="change" class="small muted">${t.connect.change}</a>
         <p class="small muted" style="flex-basis:100%;margin:4px 0 0">${t.connect.affiliation(html`<span id="uni-aff"></span>`)}</p>
@@ -288,6 +303,8 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
           <p class="small faint" style="margin:8px 0 0">${t.ttl.hint}</p>
         </div>
       </div>
+
+      <div style="margin-top:16px">${tutorial(t)}</div>
 
       <div class="steps hidden" id="steps" style="margin-top:16px">
       <div class="card step" id="s1"><div>
