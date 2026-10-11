@@ -65,6 +65,23 @@ const t = (c: Ctx) => strings[c.get("lang")];
 
 app.get("/", (c) => c.html(homePage(view(c))));
 app.get("/privacy", (c) => c.html(privacyPage(view(c))));
+// RFC 9116 security contact. "Expires" is required; it rolls forward so the file never goes stale.
+app.get("/.well-known/security.txt", (c) => {
+  const expires = new Date(Date.now() + 365 * 86400 * 1000).toISOString();
+  const base = c.env.PUBLIC_URL;
+  return c.text(
+    [
+      "Contact: mailto:security@mcp4lms.com",
+      `Expires: ${expires}`,
+      "Preferred-Languages: en, tr",
+      `Canonical: ${base}/.well-known/security.txt`,
+      `Policy: ${base}/privacy#security`,
+      "",
+    ].join("\n"),
+    200,
+    { "Content-Type": "text/plain; charset=utf-8" },
+  );
+});
 app.get("/connect", (c) => c.html(connectPage(view(c))));
 app.get("/connect/finish", (c) => c.html(finishPage(view(c))));
 app.get("/connect.js", (c) =>

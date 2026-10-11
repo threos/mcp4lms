@@ -226,6 +226,37 @@ const en = {
   privacy: {
     title: "Privacy",
     lead: "In short: we store an encrypted token, you hold the key, and Claude can only read.",
+    cryptoTitle: "Encryption and access",
+    cryptoLead:
+      "Your LMS token is encrypted at every step. It is decrypted only in memory, and only while a request is being served.",
+    stages: [
+      {
+        label: "Connect",
+        title: "The bookmark encrypts the token before it leaves your browser",
+        body: "On your LMS, the Connect bookmark asks for an app token and encrypts it with our server's public key. The token never appears in plain text in a URL, your browser history or the console.",
+        how: "RSA-OAEP · server public key",
+      },
+      {
+        label: "Stored",
+        title: "Only your personal key can unlock it",
+        body: "The server encrypts the token with a key derived from your personal key and stores only that ciphertext, plus a check value for the key. We don't keep your key, so nobody, including us, can decrypt the stored token without it.",
+        how: "AES-256-GCM · key derived from your personal key",
+      },
+      {
+        label: "In use",
+        title: "Decrypted in memory, one request at a time",
+        body: "When you connect an app such as Claude, you enter your key once. The token is decrypted and placed in that app's connection record, encrypted again with the app's own access token. On each request it is decrypted in memory, used for one read-only LMS call and discarded.",
+        how: "Encrypted per app · decrypted per request",
+      },
+    ],
+    whoTitle: "Who can read your token?",
+    who: [
+      { who: "You, with your personal key", kind: "yes", answer: "Yes", note: "The key is shown once and never stored." },
+      { who: "Mcp4Lms, at rest", kind: "no", answer: "No", note: "The database holds only ciphertext and a check value for your key." },
+      { who: "Mcp4Lms, during a request", kind: "mem", answer: "In memory only", note: "Decrypted while serving the request, then discarded." },
+      { who: "Claude", kind: "no", answer: "No", note: "Claude receives course data, never the token itself." },
+      { who: "Your LMS", kind: "lms", answer: "Issued it", note: "You can revoke it there by logging out of all devices." },
+    ],
     storeTitle: "What we store",
     store: [
       "An account id, your LMS user id and the date you connected.",
@@ -248,6 +279,20 @@ const en = {
       "When your connection expires, or you delete it, we delete the encrypted token and remove app access. We don't revoke the app token on the LMS itself; to end it there, log out of all devices on your LMS.",
     ],
     knowAccount: html`You can disconnect apps or delete all your data at any time under <a href="/account">Account</a>.`,
+    securityTitle: "Security contact and disclosure",
+    security: [
+      html`Found a vulnerability? Email <a href="mailto:security@mcp4lms.com">security@mcp4lms.com</a>. Include the steps to reproduce it, and don't access other people's data while testing. We aim to acknowledge reports within 3 days and will tell you when the issue is fixed.`,
+      (repo: string) =>
+        html`For anything else, such as questions, data requests or requests from a university, write to <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a>. The code is public on <a href="${repo}" target="_blank" rel="noopener">GitHub</a>; please report security issues by email rather than in a public issue.`,
+    ],
+    optOutTitle: "Opting out",
+    optOut: [
+      html`Open <a href="/account">Account</a>, enter your key, and disconnect individual apps or delete everything. Deletion removes your account, the encrypted token and all app connections immediately.`,
+      "Lost your key? Connect again from your LMS. This issues a new key and invalidates the old one, and you can then delete your account from the Account page.",
+      "To also end the app token on your LMS, log out of all devices there.",
+      "If you do nothing, your data is deleted automatically when the access period you chose expires.",
+      html`If you administer an LMS and want it excluded from Mcp4Lms, email <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a>.`,
+    ],
     disclaimerTitle: "Disclaimer",
     disclaimer: [
       "Mcp4Lms is provided free of charge, as is, without warranty of any kind. It is an independent open-source project released under the AGPL-3.0 license. It is not affiliated with, endorsed by or operated by any university, Moodle HQ, Anthropic, OpenAI, Google, Anysphere (Cursor) or any other AI tool vendor.",
@@ -488,6 +533,37 @@ const tr: Strings = {
   privacy: {
     title: "Gizlilik",
     lead: "Özetle: şifrelenmiş bir token saklarız, anahtar sizde kalır ve Claude yalnızca okuma yapabilir.",
+    cryptoTitle: "Şifreleme ve erişim",
+    cryptoLead:
+      "LMS tokeniniz her adımda şifrelidir. Yalnızca bellekte ve yalnızca bir istek işlenirken çözülür.",
+    stages: [
+      {
+        label: "Bağlantı",
+        title: "Yer imi, tokeni tarayıcınızdan çıkmadan önce şifreler",
+        body: "Bağlan yer imi LMS'inizden bir uygulama tokeni ister ve bu tokeni sunucumuzun açık anahtarıyla şifreler. Token hiçbir zaman bir URL'de, tarayıcı geçmişinizde veya konsolda düz metin olarak görünmez.",
+        how: "RSA-OAEP · sunucunun açık anahtarı",
+      },
+      {
+        label: "Saklama",
+        title: "Yalnızca kişisel anahtarınız açabilir",
+        body: "Sunucu, tokeni kişisel anahtarınızdan türetilen bir anahtarla şifreler ve yalnızca bu şifreli veri ile anahtarınıza ait bir doğrulama değerini saklar. Anahtarınızı saklamadığımız için biz dâhil hiç kimse saklanan tokeni anahtar olmadan çözemez.",
+        how: "AES-256-GCM · kişisel anahtarınızdan türetilen anahtar",
+      },
+      {
+        label: "Kullanım",
+        title: "Her seferinde tek bir istek için, yalnızca bellekte çözülür",
+        body: "Claude gibi bir uygulamayı bağlarken anahtarınızı bir kez girersiniz. Token çözülür ve o uygulamanın bağlantı kaydına, uygulamanın kendi erişim tokeniyle yeniden şifrelenerek yerleştirilir. Her istekte bellekte çözülür, tek bir salt okunur LMS çağrısı için kullanılır ve atılır.",
+        how: "Uygulama başına şifrelenir · istek başına çözülür",
+      },
+    ],
+    whoTitle: "Tokeninizi kim okuyabilir?",
+    who: [
+      { who: "Siz, kişisel anahtarınızla", kind: "yes", answer: "Evet", note: "Anahtar bir kez gösterilir ve hiçbir yerde saklanmaz." },
+      { who: "Mcp4Lms, saklama sırasında", kind: "no", answer: "Hayır", note: "Veritabanında yalnızca şifreli veri ve anahtarınıza ait bir doğrulama değeri bulunur." },
+      { who: "Mcp4Lms, istek sırasında", kind: "mem", answer: "Yalnızca bellekte", note: "İstek işlenirken çözülür, ardından atılır." },
+      { who: "Claude", kind: "no", answer: "Hayır", note: "Claude ders verilerini alır; tokenin kendisini asla görmez." },
+      { who: "LMS'iniz", kind: "lms", answer: "Tokeni veren taraf", note: "Tüm cihazlardan çıkış yaparak tokeni orada iptal edebilirsiniz." },
+    ],
     storeTitle: "Sakladığımız veriler",
     store: [
       "Bir hesap kimliği, LMS kullanıcı kimliğiniz ve bağlantı tarihi.",
@@ -510,6 +586,20 @@ const tr: Strings = {
       "Bağlantınızın süresi dolduğunda veya bağlantıyı sildiğinizde şifrelenmiş tokeni siler ve uygulamaların erişimini kaldırırız; ancak LMS üzerindeki uygulama tokenini iptal etmeyiz. Bu tokeni sonlandırmak için LMS'inizde tüm cihazlardan çıkış yapın.",
     ],
     knowAccount: html`Uygulamaların bağlantısını kesmek veya tüm verilerinizi silmek için istediğiniz zaman <a href="/account">Hesap</a> sayfasını kullanabilirsiniz.`,
+    securityTitle: "Güvenlik iletişimi ve açık bildirimi",
+    security: [
+      html`Bir güvenlik açığı mı buldunuz? <a href="mailto:security@mcp4lms.com">security@mcp4lms.com</a> adresine yazın. Açığı yeniden oluşturma adımlarını ekleyin ve test sırasında başkalarının verilerine erişmeyin. Bildirimleri 3 gün içinde yanıtlamayı hedefliyoruz ve sorun giderildiğinde size haber veririz.`,
+      (repo: string) =>
+        html`Sorular, veri talepleri veya üniversitelerden gelen talepler gibi diğer tüm konular için <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın. Kod <a href="${repo}" target="_blank" rel="noopener">GitHub</a>'da herkese açıktır; güvenlik sorunlarını lütfen herkese açık bir issue yerine e-posta ile bildirin.`,
+    ],
+    optOutTitle: "Kullanımı sonlandırma",
+    optOut: [
+      html`<a href="/account">Hesap</a> sayfasını açın, anahtarınızı girin ve tek tek uygulamaların bağlantısını kesin veya her şeyi silin. Silme işlemi hesabınızı, şifrelenmiş tokeni ve tüm uygulama bağlantılarını anında kaldırır.`,
+      "Anahtarınızı mı kaybettiniz? LMS'inizden yeniden bağlanın. Bu işlem yeni bir anahtar verir ve eskisini geçersiz kılar; ardından hesabınızı Hesap sayfasından silebilirsiniz.",
+      "LMS üzerindeki uygulama tokenini de sonlandırmak için LMS'inizde tüm cihazlardan çıkış yapın.",
+      "Hiçbir şey yapmazsanız verileriniz, seçtiğiniz erişim süresi dolduğunda otomatik olarak silinir.",
+      html`Bir LMS yönetiyorsanız ve Mcp4Lms kapsamı dışında kalmasını istiyorsanız <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın.`,
+    ],
     disclaimerTitle: "Sorumluluk reddi",
     disclaimer: [
       "Mcp4Lms ücretsiz olarak, \"olduğu gibi\" ve hiçbir garanti verilmeksizin sunulur. AGPL-3.0 lisansıyla yayımlanan bağımsız bir açık kaynak projesidir. Hiçbir üniversite, Moodle HQ, Anthropic, OpenAI, Google, Anysphere (Cursor) veya başka bir yapay zekâ aracı sağlayıcısıyla bağlantılı değildir; bu kuruluşlar tarafından onaylanmamakta veya işletilmemektedir.",
