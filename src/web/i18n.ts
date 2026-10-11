@@ -238,6 +238,7 @@ const en = {
     title: "Privacy",
     lead: "In short: we store an encrypted token, you hold the key, and Mcp4Lms only lets Claude read.",
     cryptoTitle: "Encryption and access",
+    tocTitle: "On this page",
     cryptoLead:
       "Your LMS token is what lets Mcp4Lms read your courses. Here is where it goes and who can see it.",
     connectTitle: "When you connect",
@@ -565,6 +566,7 @@ const tr: Strings = {
     title: "Gizlilik",
     lead: "Özetle: şifrelenmiş bir token saklarız, anahtar sizde kalır ve Mcp4Lms, Claude'un yalnızca okuma yapmasına izin verir.",
     cryptoTitle: "Şifreleme ve erişim",
+    tocTitle: "Bu sayfada",
     cryptoLead:
       "LMS tokeniniz, Mcp4Lms'in derslerinizi okumasını sağlayan şeydir. Aşağıda tokenin nereye gittiğini ve kimin görebildiğini bulabilirsiniz.",
     connectTitle: "Bağlanırken",
@@ -625,9 +627,9 @@ const tr: Strings = {
       "Bağlantınızın süresi dolduğunda veya bağlantıyı sildiğinizde şifrelenmiş tokeni siler ve uygulamaların erişimini kaldırırız; ancak LMS üzerindeki uygulama tokenini iptal etmeyiz. Orada nasıl iptal edeceğinizi yukarıda bulabilirsiniz.",
     ],
     knowAccount: html`Uygulamaların bağlantısını kesmek veya tüm verilerinizi silmek için istediğiniz zaman <a href="/account">Hesap</a> sayfasını kullanabilirsiniz.`,
-    securityTitle: "Güvenlik iletişimi ve açık bildirimi",
+    securityTitle: "Güvenlik iletişimi ve güvenlik zafiyeti bildirimi",
     security: [
-      html`Bir güvenlik açığı mı buldunuz? <a href="mailto:security@mcp4lms.com">security@mcp4lms.com</a> adresine yazın. Açığı yeniden oluşturma adımlarını ekleyin ve test sırasında başkalarının verilerine erişmeyin. Bildirimleri 3 gün içinde yanıtlamayı hedefliyoruz ve sorun giderildiğinde size haber veririz.`,
+      html`Bir güvenlik zafiyeti mi buldunuz? <a href="mailto:security@mcp4lms.com">security@mcp4lms.com</a> adresine yazın. Zafiyeti yeniden oluşturma adımlarını ekleyin ve test sırasında başkalarının verilerine erişmeyin. Bildirimleri 3 gün içinde yanıtlamayı hedefliyoruz ve sorun giderildiğinde size haber veririz.`,
       (repo: string) =>
         html`Sorular, veri talepleri veya üniversitelerden gelen talepler gibi diğer tüm konular için <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın. Kod <a href="${repo}" target="_blank" rel="noopener">GitHub</a>'da herkese açıktır; güvenlik sorunlarını lütfen herkese açık bir issue yerine e-posta ile bildirin.`,
     ],

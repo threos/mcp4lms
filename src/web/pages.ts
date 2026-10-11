@@ -613,11 +613,33 @@ export function accountPage(
 
 export function privacyPage(v: View) {
   const t = strings[v.lang];
+  const p = t.privacy;
+  const toc: [string, unknown][] = [
+    ["encryption", p.cryptoTitle],
+    ["store", p.storeTitle],
+    ["never", p.neverTitle],
+    ["can", p.canTitle],
+    ["lms-token", p.tokenTitle],
+    ["know", p.knowTitle],
+    ["security", p.securityTitle],
+    ["opt-out", p.optOutTitle],
+    ["disclaimer", p.disclaimerTitle],
+  ];
   return page(v, {
     title: t.privacy.title,
     current: "/privacy",
+    // Highlights the section currently in view in the floating table of contents (wide screens only).
+    script: `const L=[...document.querySelectorAll('.toc a')],S=L.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+function act(){const y=scrollY+140;let c=S[0];for(const s of S)if(s.offsetTop<=y)c=s;L.forEach(a=>{const on=a.getAttribute('href')==='#'+c.id;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')})}
+addEventListener('scroll',act,{passive:true});addEventListener('resize',act);act();`,
     body: html`
       <style>
+        .toc{display:none;position:fixed;top:112px;left:calc(50% + 340px);width:220px;font-size:.88rem;line-height:1.4}
+        @media (min-width:1140px){.toc{display:block}}
+        .toc p{font-size:.72rem;font-weight:620;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}
+        .toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+        .toc a{display:block;padding:4px 0 4px 14px;margin-left:-1px;border-left:2px solid transparent;color:var(--ink-2);text-decoration:none;transition:color .15s,border-color .15s}
+        .toc a:hover{color:var(--ink)}.toc a.on{color:var(--ink);border-left-color:var(--ink);font-weight:560}
         .q{margin:36px 0 0}.q h2{margin-bottom:.4em}.q ul,.q ol{padding-left:1.2em;color:var(--ink-2)}.q li{margin:6px 0}.q p{color:var(--ink-2)}
         .crypto h3{font-size:1.05rem;font-weight:620;letter-spacing:-.01em;margin:26px 0 10px}
         .crypto ol{margin:0 0 4px}
@@ -635,6 +657,10 @@ export function privacyPage(v: View) {
         .pill.yes{background:var(--ok-bg);color:var(--ok)}.pill.no{background:var(--surface-2);color:var(--ink-2)}.pill.mem{background:var(--warn-bg);color:#7a5200}.pill.lms{background:var(--surface-2);color:var(--ink-2)}
         .crypto details{margin-top:20px}.crypto details ul{margin-top:8px}
       </style>
+      <nav class="toc" aria-label="${p.tocTitle}">
+        <p>${p.tocTitle}</p>
+        <ul>${toc.map(([id, label]) => html`<li><a href="#${id}">${label}</a></li>`)}</ul>
+      </nav>
       <h1>${t.privacy.title}</h1>
       <p class="lead">${t.privacy.lead}</p>
       <section class="q crypto" id="encryption"><h2>${t.privacy.cryptoTitle}</h2>
@@ -662,21 +688,21 @@ export function privacyPage(v: View) {
           <ul>${t.privacy.tech.map((s) => html`<li>${s}</li>`)}</ul>
         </details>
       </section>
-      <section class="q"><h2>${t.privacy.storeTitle}</h2>
+      <section class="q" id="store"><h2>${t.privacy.storeTitle}</h2>
         <ul>${t.privacy.store.map((s) => html`<li>${s}</li>`)}</ul>
         <p>${t.privacy.storeNote}</p>
       </section>
-      <section class="q"><h2>${t.privacy.neverTitle}</h2>
+      <section class="q" id="never"><h2>${t.privacy.neverTitle}</h2>
         <p>${t.privacy.never}</p>
       </section>
-      <section class="q"><h2>${t.privacy.canTitle}</h2>
+      <section class="q" id="can"><h2>${t.privacy.canTitle}</h2>
         <p>${t.privacy.can}</p>
       </section>
       <section class="q" id="lms-token"><h2>${t.privacy.tokenTitle}</h2>
         <p>${t.privacy.token}</p>
         <p>${t.privacy.tokenReset(lmsTokenUrl(v.env))}</p>
       </section>
-      <section class="q"><h2>${t.privacy.knowTitle}</h2>
+      <section class="q" id="know"><h2>${t.privacy.knowTitle}</h2>
         <ul>
           ${t.privacy.know.map((s) => html`<li>${s}</li>`)}
           <li>${t.privacy.knowAccount}</li>
