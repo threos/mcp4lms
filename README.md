@@ -75,6 +75,8 @@ the per-grant encrypted copies of the token, and deletes the row. Connecting aga
 - `src/web/pages.ts` — all pages (home, connect, finish, consent, account, privacy).
 - `src/web/bookmarklet.ts` — the connect script that runs on the LMS page.
 - `src/web/i18n.ts` — all user-visible copy of the web pages, in English and Turkish.
+- `diagrams/*.mmd` — Mermaid sources of the Privacy page diagrams (one per language). `npm run diagrams`
+  renders them to `public/diagrams/*.svg`, which the page embeds as images (the CSP allows no inline scripts).
 
 ## Languages
 

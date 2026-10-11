@@ -1,0 +1,12 @@
+sequenceDiagram
+  accTitle: Claude soru sorduğunda ne olur
+  accDescr: Claude, Mcp4Lms'e bir istek gönderir. Mcp4Lms tokeninizi bellekte çözer, LMS'inize tek bir salt okunur istek yapar, ders verisini Claude'a iletir ve tokeni bellekten siler. Claude tokeni hiçbir zaman almaz.
+  participant C as Claude
+  participant M as Mcp4Lms
+  participant L as LMS'iniz
+  C->>M: "Bu hafta teslimi olan ne var?"
+  Note over M: Token bellekte<br/>çözülür
+  M->>L: Tek bir salt okunur istek
+  L-->>M: Ders verisi
+  M-->>C: Ders verisi (token asla gönderilmez)
+  Note over M: Token bellekten silinir

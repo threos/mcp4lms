@@ -1,0 +1,13 @@
+sequenceDiagram
+  accTitle: Connecting Mcp4Lms to your LMS
+  accDescr: You log in on your LMS. The Connect bookmark gets an app token, encrypts it and sends it to Mcp4Lms, which encrypts it again with your personal key and stores only that. Your personal key is shown to you once.
+  participant B as Your browser
+  participant L as Your LMS
+  participant M as Mcp4Lms
+  B->>L: Log in as usual
+  B->>L: Click the Connect bookmark
+  L-->>B: App token
+  Note over B: Bookmark encrypts<br/>the token
+  B->>M: Encrypted token
+  Note over M: Encrypted again with<br/>your key, then stored
+  M-->>B: Your personal key (shown once)

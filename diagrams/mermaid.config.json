@@ -1,0 +1,35 @@
+{
+  "theme": "base",
+  "fontFamily": "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  "themeVariables": {
+    "fontFamily": "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    "fontSize": "16px",
+    "primaryColor": "#f6f6f4",
+    "primaryBorderColor": "#d4d4cf",
+    "primaryTextColor": "#0a0a0a",
+    "lineColor": "#5f5f5a",
+    "textColor": "#0a0a0a",
+    "noteBkgColor": "#fff7e0",
+    "noteBorderColor": "#efdfa9",
+    "noteTextColor": "#0a0a0a",
+    "actorBkg": "#f6f6f4",
+    "actorBorder": "#d4d4cf",
+    "actorTextColor": "#0a0a0a",
+    "actorLineColor": "#d4d4cf",
+    "signalColor": "#0a0a0a",
+    "signalTextColor": "#3d3d39"
+  },
+  "sequence": {
+    "mirrorActors": false,
+    "wrap": true,
+    "width": 180,
+    "height": 48,
+    "actorMargin": 56,
+    "messageMargin": 34,
+    "noteMargin": 10,
+    "boxMargin": 10,
+    "diagramMarginX": 6,
+    "diagramMarginY": 6,
+    "useMaxWidth": true
+  }
+}

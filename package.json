@@ -12,7 +12,8 @@
     "cf-typegen": "wrangler types",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "keys": "node scripts/generate-connect-key.mjs"
+    "keys": "node scripts/generate-connect-key.mjs",
+    "diagrams": "node scripts/render-diagrams.mjs"
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "^1.2.3",

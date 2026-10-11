@@ -1,0 +1,12 @@
+sequenceDiagram
+  accTitle: What happens when Claude asks a question
+  accDescr: Claude sends a request to Mcp4Lms. Mcp4Lms decrypts your token in memory, makes one read-only request to your LMS, returns the course data to Claude and discards the token. Claude never receives the token.
+  participant C as Claude
+  participant M as Mcp4Lms
+  participant L as Your LMS
+  C->>M: "What's due this week?"
+  Note over M: Token decrypted<br/>in memory
+  M->>L: One read-only request
+  L-->>M: Course data
+  M-->>C: Course data (never the token)
+  Note over M: Token discarded

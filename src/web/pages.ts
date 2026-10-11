@@ -571,17 +571,6 @@ export function accountPage(
 
 // --- Privacy ---------------------------------------------------------------------
 
-const svg = (body: string) =>
-  raw(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`);
-
-/** Small line icons for the encryption flow, in the order of `privacy.stages`: bookmark, database, memory chip. */
-const STAGE_ICONS = [
-  svg('<path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path d="M9.5 10.5h5M12 8v5"/>'),
-  svg('<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>'),
-  svg('<rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>'),
-];
-const LOCK_ICON = svg('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>');
-
 export function privacyPage(v: View) {
   const t = strings[v.lang];
   return page(v, {
@@ -590,55 +579,48 @@ export function privacyPage(v: View) {
     body: html`
       <style>
         .q{margin:36px 0 0}.q h2{margin-bottom:.4em}.q ul,.q ol{padding-left:1.2em;color:var(--ink-2)}.q li{margin:6px 0}.q p{color:var(--ink-2)}
-        .crypto .card{margin-top:18px}
-        .flow{display:grid;gap:0}
-        .stage{display:grid;grid-template-columns:44px minmax(0,1fr);gap:0 16px;position:relative;padding-bottom:24px}
-        .stage:last-child{padding-bottom:0}
-        .stage:not(:last-child)::before{content:"";position:absolute;left:21px;top:50px;bottom:6px;width:2px;border-radius:2px;background:var(--line)}
-        .stage .ic{width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink)}
-        .stage .ic svg{width:22px;height:22px;display:block}
-        .stage .lbl{font-size:.75rem;font-weight:620;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 2px;line-height:1.4}
-        .stage h3{font-size:1.02rem;line-height:1.35;letter-spacing:-.01em;font-weight:620;margin:0 0 .35em}
-        .stage p{margin:0 0 10px;font-size:.95rem}
-        .how{display:inline-flex;align-items:center;gap:7px;max-width:100%;font:.78rem/1.4 var(--mono);background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--ink-2)}
-        .how svg{width:12px;height:12px;flex:none}
-        .who-h{font-size:.95rem;font-weight:620;margin:28px 0 10px;letter-spacing:-.01em}
-        .who{display:grid;gap:8px}
-        .who-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}
-        .who-row b{font-weight:600;font-size:.95rem}
-        .who-note{grid-column:1/-1;color:var(--ink-2);font-size:.9rem;margin:0}
-        .pill{font-size:.78rem;font-weight:620;border-radius:999px;padding:3px 10px;white-space:nowrap;line-height:1.5}
+        .crypto h3{font-size:1.05rem;font-weight:620;letter-spacing:-.01em;margin:26px 0 10px}
+        .crypto ol{margin:0 0 4px}
+        .diagram{margin:0 0 14px;background:var(--surface);border-radius:var(--r);padding:14px 10px}
+        .diagram{overflow-x:auto;-webkit-overflow-scrolling:touch}.diagram img{display:block;width:100%;height:auto;min-width:520px}
+        @media (min-width:600px){.diagram img{min-width:0}}
+        .who{width:100%;border-collapse:separate;border-spacing:0;margin:28px 0 0;font-size:.95rem}
+        .who caption{text-align:left;font-size:1.05rem;font-weight:620;letter-spacing:-.01em;margin-bottom:10px;color:var(--ink)}
+        .who th,.who td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+        .who thead th{font-size:.78rem;font-weight:620;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);padding-top:0}
+        .who tbody th{font-weight:600}
+        .who td{text-align:right;white-space:nowrap}
+        .who-note{display:block;font-weight:400;color:var(--ink-2);font-size:.9rem;margin-top:2px}
+        .pill{display:inline-block;font-size:.78rem;font-weight:620;border-radius:999px;padding:3px 10px;line-height:1.5}
         .pill.yes{background:var(--ok-bg);color:var(--ok)}.pill.no{background:var(--surface-2);color:var(--ink-2)}.pill.mem{background:var(--warn-bg);color:#7a5200}.pill.lms{background:var(--surface-2);color:var(--ink-2)}
-        @media (max-width:480px){.stage{grid-template-columns:36px minmax(0,1fr);gap:0 12px}.stage .ic{width:36px;height:36px;border-radius:11px}.stage .ic svg{width:18px;height:18px}.stage:not(:last-child)::before{left:17px;top:42px}}
+        .crypto details{margin-top:20px}.crypto details ul{margin-top:8px}
       </style>
       <h1>${t.privacy.title}</h1>
       <p class="lead">${t.privacy.lead}</p>
       <section class="q crypto"><h2>${t.privacy.cryptoTitle}</h2>
         <p>${t.privacy.cryptoLead}</p>
-        <div class="card soft">
-          <div class="flow">
-            ${t.privacy.stages.map(
-              (s, i) => html`<div class="stage">
-                <div class="ic">${STAGE_ICONS[i]}</div>
-                <div>
-                  <p class="lbl">${i + 1} · ${s.label}</p>
-                  <h3>${s.title}</h3>
-                  <p>${s.body}</p>
-                  <span class="how">${LOCK_ICON}${s.how}</span>
-                </div>
-              </div>`,
-            )}
-          </div>
-          <h3 class="who-h">${t.privacy.whoTitle}</h3>
-          <div class="who">
+        <h3>${t.privacy.connectTitle}</h3>
+        <figure class="diagram"><img src="/diagrams/connect-${v.lang}.svg" alt="${t.privacy.connectAlt}" loading="lazy"></figure>
+        <ol>${t.privacy.connectPoints.map((s) => html`<li>${s}</li>`)}</ol>
+        <h3>${t.privacy.requestTitle}</h3>
+        <figure class="diagram"><img src="/diagrams/request-${v.lang}.svg" alt="${t.privacy.requestAlt}" loading="lazy"></figure>
+        <ol>${t.privacy.requestPoints.map((s) => html`<li>${s}</li>`)}</ol>
+        <table class="who">
+          <caption>${t.privacy.whoTitle}</caption>
+          <thead><tr><th scope="col">${t.privacy.whoCols.who}</th><th scope="col">${t.privacy.whoCols.can}</th></tr></thead>
+          <tbody>
             ${t.privacy.who.map(
-              (w) => html`<div class="who-row">
-                <b>${w.who}</b><span class="pill ${w.kind}">${w.answer}</span>
-                <p class="who-note">${w.note}</p>
-              </div>`,
+              (w) => html`<tr>
+                <th scope="row">${w.who}<span class="who-note">${w.note}</span></th>
+                <td><span class="pill ${w.kind}">${w.answer}</span></td>
+              </tr>`,
             )}
-          </div>
-        </div>
+          </tbody>
+        </table>
+        <details>
+          <summary>${t.privacy.techTitle}</summary>
+          <ul>${t.privacy.tech.map((s) => html`<li>${s}</li>`)}</ul>
+        </details>
       </section>
       <section class="q"><h2>${t.privacy.storeTitle}</h2>
         <ul>${t.privacy.store.map((s) => html`<li>${s}</li>`)}</ul>

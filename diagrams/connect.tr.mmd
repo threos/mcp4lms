@@ -1,0 +1,13 @@
+sequenceDiagram
+  accTitle: Mcp4Lms'i LMS'inize bağlama
+  accDescr: LMS'inize giriş yaparsınız. Bağlan yer imi bir uygulama tokeni alır, şifreler ve Mcp4Lms'e gönderir. Mcp4Lms tokeni kişisel anahtarınızla yeniden şifreler ve yalnızca bunu saklar. Kişisel anahtarınız size bir kez gösterilir.
+  participant B as Tarayıcınız
+  participant L as LMS'iniz
+  participant M as Mcp4Lms
+  B->>L: Her zamanki gibi giriş
+  B->>L: Bağlan yer imine tıklama
+  L-->>B: Uygulama tokeni
+  Note over B: Yer imi tokeni<br/>şifreler
+  B->>M: Şifreli token
+  Note over M: Anahtarınızla yeniden<br/>şifrelenip saklanır
+  M-->>B: Kişisel anahtarınız (bir kez gösterilir)

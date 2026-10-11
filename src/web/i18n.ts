@@ -228,34 +228,37 @@ const en = {
     lead: "In short: we store an encrypted token, you hold the key, and Claude can only read.",
     cryptoTitle: "Encryption and access",
     cryptoLead:
-      "Your LMS token is encrypted at every step. It is decrypted only in memory, and only while a request is being served.",
-    stages: [
-      {
-        label: "Connect",
-        title: "The bookmark encrypts the token before it leaves your browser",
-        body: "On your LMS, the Connect bookmark asks for an app token and encrypts it with our server's public key. The token never appears in plain text in a URL, your browser history or the console.",
-        how: "RSA-OAEP · server public key",
-      },
-      {
-        label: "Stored",
-        title: "Only your personal key can unlock it",
-        body: "The server encrypts the token with a key derived from your personal key and stores only that ciphertext, plus a check value for the key. We don't keep your key, so nobody, including us, can decrypt the stored token without it.",
-        how: "AES-256-GCM · key derived from your personal key",
-      },
-      {
-        label: "In use",
-        title: "Decrypted in memory, one request at a time",
-        body: "When you connect an app such as Claude, you enter your key once. The token is decrypted and placed in that app's connection record, encrypted again with the app's own access token. On each request it is decrypted in memory, used for one read-only LMS call and discarded.",
-        how: "Encrypted per app · decrypted per request",
-      },
+      "Your LMS token is what lets Mcp4Lms read your courses. Here is where it goes and who can see it.",
+    connectTitle: "When you connect",
+    connectAlt:
+      "Diagram: your browser logs in to your LMS and clicks the Connect bookmark. The LMS returns an app token. The bookmark encrypts it and sends it to Mcp4Lms, which encrypts it again with your personal key and stores only that. Your personal key is shown to you once.",
+    connectPoints: [
+      "You log in on your LMS as usual. We never see your password.",
+      "The Connect bookmark gets an app token from your LMS and encrypts it before sending it to us. Only our server can open it.",
+      "Our server encrypts the token again with your personal key and stores only that. We don't keep your key, so we can't open the stored token without you.",
+    ],
+    requestTitle: "When Claude asks a question",
+    requestAlt:
+      "Diagram: Claude sends a question to Mcp4Lms. Mcp4Lms decrypts your token in memory, makes one read-only request to your LMS, returns the course data to Claude and discards the token. Claude never receives the token.",
+    requestPoints: [
+      "Claude sends the question to Mcp4Lms.",
+      "Mcp4Lms decrypts your token in memory, makes one read-only request to your LMS, and forgets the token again.",
+      "Claude gets the course data back. It never receives the token.",
     ],
     whoTitle: "Who can read your token?",
+    whoCols: { who: "Who", can: "Can read it?" },
     who: [
       { who: "You, with your personal key", kind: "yes", answer: "Yes", note: "The key is shown once and never stored." },
-      { who: "Mcp4Lms, at rest", kind: "no", answer: "No", note: "The database holds only ciphertext and a check value for your key." },
-      { who: "Mcp4Lms, during a request", kind: "mem", answer: "In memory only", note: "Decrypted while serving the request, then discarded." },
-      { who: "Claude", kind: "no", answer: "No", note: "Claude receives course data, never the token itself." },
-      { who: "Your LMS", kind: "lms", answer: "Issued it", note: "You can revoke it there by logging out of all devices." },
+      { who: "Mcp4Lms, while stored", kind: "no", answer: "No", note: "The database holds only the encrypted token." },
+      { who: "Mcp4Lms, during a request", kind: "mem", answer: "In memory only", note: "Decrypted for one request, then discarded." },
+      { who: "Claude", kind: "no", answer: "No", note: "Claude receives course data, never the token." },
+      { who: "Your LMS", kind: "lms", answer: "Issued it", note: "You can end it there by logging out of all devices." },
+    ],
+    techTitle: "Technical details",
+    tech: [
+      "Connect: the bookmark encrypts the token with the server's RSA-OAEP public key, so it never appears in plain text in a URL, your browser history or the console.",
+      "Storage: the token is encrypted with AES-256-GCM under a key derived (HKDF) from your personal key. Only a verifier of the key is stored, never the key.",
+      "Use: when you connect an app, the token is placed in that app's connection, encrypted again with the app's own access token. Each request decrypts it in memory for a single read-only LMS call.",
     ],
     storeTitle: "What we store",
     store: [
@@ -535,34 +538,37 @@ const tr: Strings = {
     lead: "Özetle: şifrelenmiş bir token saklarız, anahtar sizde kalır ve Claude yalnızca okuma yapabilir.",
     cryptoTitle: "Şifreleme ve erişim",
     cryptoLead:
-      "LMS tokeniniz her adımda şifrelidir. Yalnızca bellekte ve yalnızca bir istek işlenirken çözülür.",
-    stages: [
-      {
-        label: "Bağlantı",
-        title: "Yer imi, tokeni tarayıcınızdan çıkmadan önce şifreler",
-        body: "Bağlan yer imi LMS'inizden bir uygulama tokeni ister ve bu tokeni sunucumuzun açık anahtarıyla şifreler. Token hiçbir zaman bir URL'de, tarayıcı geçmişinizde veya konsolda düz metin olarak görünmez.",
-        how: "RSA-OAEP · sunucunun açık anahtarı",
-      },
-      {
-        label: "Saklama",
-        title: "Yalnızca kişisel anahtarınız açabilir",
-        body: "Sunucu, tokeni kişisel anahtarınızdan türetilen bir anahtarla şifreler ve yalnızca bu şifreli veri ile anahtarınıza ait bir doğrulama değerini saklar. Anahtarınızı saklamadığımız için biz dâhil hiç kimse saklanan tokeni anahtar olmadan çözemez.",
-        how: "AES-256-GCM · kişisel anahtarınızdan türetilen anahtar",
-      },
-      {
-        label: "Kullanım",
-        title: "Her seferinde tek bir istek için, yalnızca bellekte çözülür",
-        body: "Claude gibi bir uygulamayı bağlarken anahtarınızı bir kez girersiniz. Token çözülür ve o uygulamanın bağlantı kaydına, uygulamanın kendi erişim tokeniyle yeniden şifrelenerek yerleştirilir. Her istekte bellekte çözülür, tek bir salt okunur LMS çağrısı için kullanılır ve atılır.",
-        how: "Uygulama başına şifrelenir · istek başına çözülür",
-      },
+      "LMS tokeniniz, Mcp4Lms'in derslerinizi okumasını sağlayan şeydir. Aşağıda tokenin nereye gittiğini ve kimin görebildiğini bulabilirsiniz.",
+    connectTitle: "Bağlanırken",
+    connectAlt:
+      "Şema: tarayıcınız LMS'inize giriş yapar ve Bağlan yer imine tıklar. LMS bir uygulama tokeni döndürür. Yer imi tokeni şifreler ve Mcp4Lms'e gönderir; Mcp4Lms tokeni kişisel anahtarınızla yeniden şifreler ve yalnızca bunu saklar. Kişisel anahtarınız size bir kez gösterilir.",
+    connectPoints: [
+      "LMS'inize her zamanki gibi giriş yaparsınız. Parolanızı hiçbir zaman görmeyiz.",
+      "Bağlan yer imi LMS'inizden bir uygulama tokeni alır ve bize göndermeden önce şifreler. Bunu yalnızca sunucumuz açabilir.",
+      "Sunucumuz tokeni kişisel anahtarınızla yeniden şifreler ve yalnızca bunu saklar. Anahtarınızı saklamadığımız için saklanan tokeni siz olmadan açamayız.",
+    ],
+    requestTitle: "Claude soru sorduğunda",
+    requestAlt:
+      "Şema: Claude, Mcp4Lms'e bir soru gönderir. Mcp4Lms tokeninizi bellekte çözer, LMS'inize tek bir salt okunur istek yapar, ders verisini Claude'a iletir ve tokeni bellekten siler. Claude tokeni hiçbir zaman almaz.",
+    requestPoints: [
+      "Claude soruyu Mcp4Lms'e gönderir.",
+      "Mcp4Lms tokeninizi bellekte çözer, LMS'inize tek bir salt okunur istek yapar ve tokeni yeniden unutur.",
+      "Claude ders verisini alır. Tokeni hiçbir zaman almaz.",
     ],
     whoTitle: "Tokeninizi kim okuyabilir?",
+    whoCols: { who: "Kim", can: "Okuyabilir mi?" },
     who: [
       { who: "Siz, kişisel anahtarınızla", kind: "yes", answer: "Evet", note: "Anahtar bir kez gösterilir ve hiçbir yerde saklanmaz." },
-      { who: "Mcp4Lms, saklama sırasında", kind: "no", answer: "Hayır", note: "Veritabanında yalnızca şifreli veri ve anahtarınıza ait bir doğrulama değeri bulunur." },
-      { who: "Mcp4Lms, istek sırasında", kind: "mem", answer: "Yalnızca bellekte", note: "İstek işlenirken çözülür, ardından atılır." },
-      { who: "Claude", kind: "no", answer: "Hayır", note: "Claude ders verilerini alır; tokenin kendisini asla görmez." },
-      { who: "LMS'iniz", kind: "lms", answer: "Tokeni veren taraf", note: "Tüm cihazlardan çıkış yaparak tokeni orada iptal edebilirsiniz." },
+      { who: "Mcp4Lms, saklama sırasında", kind: "no", answer: "Hayır", note: "Veritabanında yalnızca şifrelenmiş token bulunur." },
+      { who: "Mcp4Lms, istek sırasında", kind: "mem", answer: "Yalnızca bellekte", note: "Tek bir istek için çözülür, ardından silinir." },
+      { who: "Claude", kind: "no", answer: "Hayır", note: "Claude ders verisini alır, tokeni asla almaz." },
+      { who: "LMS'iniz", kind: "lms", answer: "Tokeni veren taraf", note: "Tüm cihazlardan çıkış yaparak tokeni orada sonlandırabilirsiniz." },
+    ],
+    techTitle: "Teknik ayrıntılar",
+    tech: [
+      "Bağlantı: yer imi tokeni sunucunun RSA-OAEP açık anahtarıyla şifreler; böylece token bir URL'de, tarayıcı geçmişinizde veya konsolda hiçbir zaman düz metin olarak görünmez.",
+      "Saklama: token, kişisel anahtarınızdan türetilen (HKDF) bir anahtarla AES-256-GCM kullanılarak şifrelenir. Anahtarın kendisi değil, yalnızca bir doğrulama değeri saklanır.",
+      "Kullanım: bir uygulamayı bağladığınızda token o uygulamanın bağlantısına, uygulamanın kendi erişim tokeniyle yeniden şifrelenerek yerleştirilir. Her istekte tek bir salt okunur LMS çağrısı için bellekte çözülür.",
     ],
     storeTitle: "Sakladığımız veriler",
     store: [
