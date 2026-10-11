@@ -154,7 +154,7 @@ export async function fetchFileText(
     // anything else is fetched anonymously, and only once the user has said yes.
     const ext = externalUrl(url);
     if (!ext || ext.origin === new URL(lmsUrl).origin) {
-      throw new Error("Only files hosted on the LMS can be read (links from get_course_contents or list_assignments).");
+      throw new Error("Only files hosted on the LMS can be read (links from get_course_contents, list_assignments or get_assignment_status).");
     }
     if (!opts.confirmedByUser) throw new NeedsConfirmation(ext.host);
     target = ext;
