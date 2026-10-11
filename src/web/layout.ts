@@ -110,6 +110,8 @@ export function page(
   const { env, lang, path } = v;
   const t = strings[lang];
   const { title, body, script, wide, current, description } = opts;
+  // Link previews (WhatsApp, Facebook, X) need absolute URLs; the image is a 1200×630 JPEG per language in public/.
+  const canonical = env.PUBLIC_URL + path.split("?")[0];
   const nav = (href: string, label: string) =>
     html`<a href="${href}" ${current === href ? raw('aria-current="page"') : ""}>${label}</a>`;
   const langLink = (l: Lang) =>
@@ -124,6 +126,19 @@ export function page(
 <meta name="theme-color" content="#ffffff">
 ${description ? html`<meta name="description" content="${description}">` : ""}
 <title>${title} · Mcp4Lms</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mcp4Lms">
+<meta property="og:title" content="${title} · Mcp4Lms">
+<meta property="og:description" content="${description ?? t.home.description}">
+<meta property="og:url" content="${canonical}">
+<meta property="og:locale" content="${lang === "tr" ? "tr_TR" : "en_US"}">
+<meta property="og:image" content="${env.PUBLIC_URL}/og-${lang}.jpg">
+<meta property="og:image:secure_url" content="${env.PUBLIC_URL}/og-${lang}.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${t.home.title}">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${FAVICON}">
 <link rel="apple-touch-icon" href="/flag.png">
 <style>${raw(css)}</style>
