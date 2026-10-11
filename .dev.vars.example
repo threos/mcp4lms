@@ -1,1 +1,4 @@
 CONNECT_PRIVATE_KEY='{"kty":"RSA","n":"...","e":"AQAB","d":"..."}'
+
+# Local override of the production PUBLIC_URL in wrangler.jsonc
+PUBLIC_URL=http://localhost:8787

@@ -11,23 +11,26 @@
 
   // One deployment serves one LMS. Change these for your own instance.
   "vars": {
-    "PUBLIC_URL": "http://localhost:8787",
+    "PUBLIC_URL": "https://mcp4lms.com",
     "LMS_URL": "https://lms.ozyegin.edu.tr"
   },
 
   // OAuth grants/tokens (managed by @cloudflare/workers-oauth-provider).
   // Create with: npx wrangler kv namespace create OAUTH_KV
-  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "00000000000000000000000000000000" }],
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "9301f1daa3e94e3085407f2fff1928c5" }],
 
   // Accounts (encrypted LMS tokens). Create with: npx wrangler d1 create mcp4lms
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "mcp4lms",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "73c7fe93-92f2-4ef8-8753-c88bc3e91760",
       "migrations_dir": "migrations"
     }
   ],
+
+  // Production hostname (Cloudflare issues the certificate). Must match PUBLIC_URL.
+  "routes": [{ "pattern": "mcp4lms.com", "custom_domain": true }],
 
   // Daily cleanup of expired OAuth records.
   "triggers": { "crons": ["17 3 * * *"] }
