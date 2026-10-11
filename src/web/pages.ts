@@ -1,6 +1,6 @@
 import { html, raw } from "hono/html";
 import type { ConsentDescription } from "@cloudflare/workers-oauth-provider";
-import { MARK, jsData, page, type View } from "./layout";
+import { MARK, jsData, lmsLink, page, type View } from "./layout";
 import { bookmarkletHref, connectScript } from "./bookmarklet";
 import { strings, type Strings } from "./i18n";
 import { universitiesFor, universityName } from "../universities";
@@ -9,7 +9,8 @@ import { classifyRedirect } from "../clients";
 
 const mcpUrl = (env: Env) => `${env.PUBLIC_URL}/mcp`;
 /** Moodle's "Security keys" page, where the student can reset or delete the app token at the LMS itself. */
-const lmsTokenUrl = (env: Env) => `${env.LMS_URL.replace(/\/+$/, "")}/user/managetoken.php`;
+const LMS_TOKEN_PATH = "/user/managetoken.php";
+const tokenLink = (text: string) => lmsLink(LMS_TOKEN_PATH, text);
 /** How long the finish page offers to continue a consent started before connecting. */
 const PENDING_AUTH_MS = 10 * 60 * 1000;
 /** Same in every language: step 3 tells users to click it, so it must match what their bookmarks bar shows. */
@@ -180,12 +181,15 @@ ${pickerJs}
 
 // --- Connect (install the bookmark) -----------------------------------------
 
+// The Google Chrome logo (2022 flat mark): three segments rotated around a white ring and blue center.
+const CHROME_SEGMENT = "M43.6 14A22 22 0 0 0 5.54 12.03L15.34 29A10 10 0 0 1 24 14Z";
+const CHROME_ICON = `<svg viewBox="0 0 48 48" role="img" aria-label="Google Chrome"><path fill="#EA4335" d="${CHROME_SEGMENT}"/><path fill="#FBBC04" d="${CHROME_SEGMENT}" transform="rotate(120 24 24)"/><path fill="#34A853" d="${CHROME_SEGMENT}" transform="rotate(240 24 24)"/><circle cx="24" cy="24" r="10" fill="#fff"/><circle cx="24" cy="24" r="8" fill="#1A73E8"/></svg>`;
+
 export function connectPage(v: View) {
   const { env, lang } = v;
   const t = strings[lang];
   const href = bookmarkletHref(env, lang);
   const host = new URL(env.PUBLIC_URL).host;
-  const host_lms = new URL(env.LMS_URL).host;
   const unis = universitiesFor(env).map((u) => ({ ...u, name: universityName(u, lang) }));
   const script = `
 const data=${jsData({ href, console: connectScript(env, lang) })};
@@ -195,8 +199,9 @@ const isMobile=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)&&!/Macint
 document.querySelectorAll('.shortcut').forEach(e=>e.innerHTML=isMac?'<kbd>⌘</kbd> <kbd>Shift</kbd> <kbd>B</kbd>':'<kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd>');
 if(isMobile)document.getElementById('mobile').classList.remove('hidden');
 const $=id=>document.getElementById(id);const bm=$('bm'),hint=$('hint'),slot=$('slot');
-const unis=${jsData(unis.filter((u) => u.available).map((u) => ({ id: u.id, name: u.name })))};
+const unis=${jsData(unis.filter((u) => u.available).map((u) => ({ id: u.id, name: u.name, url: u.lmsUrl.replace(/\/+$/, "") })))};
 function choose(id,remember){const u=unis.find(x=>x.id===id);if(!u)return;
+  document.querySelectorAll('.lms-my').forEach(a=>a.href=u.url+'/my/');$('open-lms').textContent=T.open.replace('{host}',new URL(u.url).host);
   $('picker').classList.add('hidden');$('chosen').classList.remove('hidden');$('uni-name').textContent=u.name;$('uni-aff').textContent=u.name;
   $('steps').classList.remove('hidden');if(remember)try{localStorage.setItem('m4l_uni',id)}catch(e){}}
 document.querySelectorAll('.uni[data-id]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.id,true)));
@@ -227,13 +232,7 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
     body: html`
       <style>
         .warn-note{display:flex;align-items:flex-start;gap:10px}.warn-note svg{flex:none;width:18px;height:18px;margin-top:3px;color:#c48600}
-        .uni{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
-        .uni+.uni{margin-top:8px}
-        .uni:hover:not([disabled]){border-color:var(--ink)}
-        .uni[disabled]{cursor:default;color:var(--ink-3)}
-        .uni .mark{font-size:1.5rem;line-height:1;-webkit-text-stroke:.5px currentColor}
-        .uni b{display:block}.uni small{color:var(--ink-3);font-family:var(--mono)}
-        .uni .soon{margin-left:auto;font-size:.8rem;color:var(--ink-3)}
+        .chrome-note{display:flex;align-items:center;gap:10px}.chrome-note svg{flex:none;width:20px;height:20px}
         .chosen{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
         .chosen b{flex:1}
         .chosen .ttl{flex-basis:100%;margin-top:6px;padding-top:14px;border-top:1px solid var(--line)}
@@ -275,6 +274,7 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
       <h1>${t.connect.h1}</h1>
       <p class="lead">${t.connect.lead}</p>
       <p class="note small warn-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>${t.connect.experimental}</span></p>
+      <p class="note small chrome-note">${raw(CHROME_ICON)}<span>${t.connect.chrome}</span></p>
       <p id="mobile" class="note hidden">${t.connect.mobile}</p>
       ${tutorial(t)}
 
@@ -327,7 +327,7 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
         <details><summary>${t.connect.console}</summary>
           <ol class="small">
             <li><button class="btn ghost sm" id="copy-console" type="button">${t.connect.copyScript}</button></li>
-            <li>${t.connect.console2(html`<a href="${env.LMS_URL}/my/" target="_blank" rel="noopener">${t.connect.yourLms}</a>`)}</li>
+            <li>${t.connect.console2(html`<a class="lms-my" href="#" target="_blank" rel="noopener">${t.connect.yourLms}</a>`)}</li>
             <li>${t.connect.console3}</li>
           </ol>
           <p class="small faint">${t.connect.consoleTrust(host)}</p>
@@ -337,7 +337,7 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
       <div class="card step dim" id="s2"><div>
         <h2>${t.connect.step2}</h2>
         <p class="muted small">${t.connect.step2Lead}</p>
-        <a class="btn ghost sm" href="${env.LMS_URL}/my/" target="_blank" rel="noopener">${t.connect.open(host_lms)}</a>
+        <a class="btn ghost sm lms-my" id="open-lms" href="#" target="_blank" rel="noopener"></a>
       </div></div>
 
       <div class="card step dim" id="s3"><div>
@@ -503,7 +503,7 @@ document.querySelector('form').addEventListener('submit',e=>{if(e.submitter&&e.s
 
 /** Opens Moodle's Security keys page in a new tab, where the token can be reset at the LMS itself. */
 const revokeLink = (v: View) =>
-  html`<a class="btn ghost sm" href="${lmsTokenUrl(v.env)}" target="_blank" rel="noopener noreferrer">${strings[v.lang].account.revokeButton}</a>`;
+  lmsLink(LMS_TOKEN_PATH, strings[v.lang].account.revokeButton, "btn ghost sm");
 
 /** After deleting the account: the token still works at the LMS until the student revokes it there. */
 export function deletedPage(v: View) {
@@ -624,6 +624,7 @@ export function privacyPage(v: View) {
     ["security", p.securityTitle],
     ["opt-out", p.optOutTitle],
     ["universities", p.uniTitle],
+    ["hosting", p.hostTitle],
     ["disclaimer", p.disclaimerTitle],
   ];
   return page(v, {
@@ -701,7 +702,7 @@ addEventListener('scroll',act,{passive:true});addEventListener('resize',act);act
       </section>
       <section class="q" id="lms-token"><h2>${t.privacy.tokenTitle}</h2>
         <p>${t.privacy.token}</p>
-        <p>${t.privacy.tokenReset(lmsTokenUrl(v.env))}</p>
+        <p>${t.privacy.tokenReset(tokenLink)}</p>
       </section>
       <section class="q" id="know"><h2>${t.privacy.knowTitle}</h2>
         <ul>
@@ -713,7 +714,7 @@ addEventListener('scroll',act,{passive:true});addEventListener('resize',act);act
         ${t.privacy.security.map((p) => html`<p>${typeof p === "function" ? p(v.env.REPO_URL) : p}</p>`)}
       </section>
       <section class="q" id="opt-out"><h2>${t.privacy.optOutTitle}</h2>
-        <ol>${t.privacy.optOut.map((s) => html`<li>${typeof s === "function" ? s(lmsTokenUrl(v.env)) : s}</li>`)}</ol>
+        <ol>${t.privacy.optOut.map((s) => html`<li>${typeof s === "function" ? s(tokenLink) : s}</li>`)}</ol>
       </section>
       <section class="q" id="universities"><h2>${p.uniTitle}</h2>
         <p>${p.uniIntro}</p>
@@ -722,6 +723,13 @@ addEventListener('scroll',act,{passive:true});addEventListener('resize',act);act
         <p>${p.uniContact}</p>
         <h3>${p.uniOptOutTitle}</h3>
         <ul>${p.uniOptOut.map((b) => html`<li>${b}</li>`)}</ul>
+      </section>
+      <section class="q" id="hosting"><h2>${p.hostTitle}</h2>
+        <p>${p.hostIntro}</p>
+        <p>${p.hostCommunity}</p>
+        <ul>${p.hostControls.map((c) => html`<li>${c}</li>`)}</ul>
+        <p>${p.hostContact(v.env.REPO_URL)}</p>
+        <p>${p.hostNonProfit}</p>
       </section>
       <section class="q" id="disclaimer"><h2>${t.privacy.disclaimerTitle}</h2>
         ${t.privacy.disclaimer.map((p) => html`<p>${p}</p>`)}

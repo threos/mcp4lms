@@ -30,6 +30,12 @@ export function langFromAcceptLanguage(header: string | undefined): Lang | undef
 const en = {
   langName: "English",
   nav: { connect: "Connect", account: "Account", privacy: "Privacy", language: "Language" },
+  lmsPicker: {
+    title: "Choose your university",
+    lead: "This link opens a page on your university's LMS. Pick yours first.",
+    notAvailable: "not yet available",
+    close: "Close",
+  },
   footer: {
     open: "Open source · free · AGPL-3.0",
     affiliation: "Not affiliated with any university, Moodle HQ, Anthropic, OpenAI, Google or Anysphere.",
@@ -98,6 +104,7 @@ const en = {
     h1: "Connect your LMS",
     lead: "About a minute, on a computer. You only do this once.",
     experimental: html`Mcp4Lms is an experimental open-source project. Continue at your own risk. See <a href="/privacy#encryption">how your access is protected</a>.`,
+    chrome: html`Works best in <a href="https://www.google.com/chrome/" target="_blank" rel="noopener">Google Chrome</a> on a computer. Other browsers can block or hide bookmarklets.`,
     mobile: "You seem to be on a phone. Do this step on a computer. Afterwards Claude works on your phone too.",
     pickTitle: "Choose your university",
     pickLead: "Mcp4Lms connects to your university's LMS. Pick yours.",
@@ -127,11 +134,11 @@ const en = {
       html`Only paste scripts from sites you trust. This one talks only to your LMS and ${host}, and it's open source.`,
     step2: "Open your LMS",
     step2Lead: "Log in as usual if it asks.",
-    open: (host: string) => `Open ${host} ↗`,
     step3: (bookmark: string) => html`Click <b>${bookmark}</b> while your LMS is open`,
     step3Lead:
       "You'll come back here with your personal key. The bookmark asks your LMS for an app token, encrypts it so only this service can read it, and sends it here. It never sees your password.",
     js: {
+      open: "Open {host} ↗",
       clickedHere: "Don't click it here. Drag it up to your real bookmarks bar.",
       dragging: "Drop it on the bookmarks bar at the top of this window.",
       notAdded: "Not added yet. Drag it all the way up, under the address bar.",
@@ -289,8 +296,8 @@ const en = {
     tokenTitle: "What the LMS token itself can do",
     token:
       "It's the same kind of token the official Moodle app uses, so technically it can do anything you can do in that app, such as submitting assignments or sending messages. Mcp4Lms only ever uses it for a fixed set of read-only calls. Deleting your data here, or letting it expire, doesn't revoke it on your LMS.",
-    tokenReset: (url: string) =>
-      html`To revoke it, open <a href="${url}" target="_blank" rel="noopener noreferrer">Security keys on your LMS</a> and reset the key for the Moodle mobile service. This may sign you out of the Moodle app.`,
+    tokenReset: (a: (text: string) => unknown) =>
+      html`To revoke it, open ${a("Security keys on your LMS")} and reset the key for the Moodle mobile service. This may sign you out of the Moodle app.`,
     knowTitle: "What you should know",
     know: [
       "When the AI reads a course file, its contents pass through our server to the AI tool once, and are never stored or logged.",
@@ -310,8 +317,8 @@ const en = {
     optOut: [
       html`Open <a href="/account">Account</a>, enter your key, and disconnect individual apps or delete everything. Deletion removes your account, the encrypted token and all app connections immediately.`,
       "Lost your key? Connect again from your LMS. This issues a new key and invalidates the old one, and you can then delete your account from the Account page.",
-      (url: string) =>
-        html`To also end the app token on your LMS, reset it under <a href="${url}" target="_blank" rel="noopener noreferrer">Security keys</a> there. This may sign you out of the Moodle app.`,
+      (a: (text: string) => unknown) =>
+        html`To also end the app token on your LMS, reset it under ${a("Security keys")} there. This may sign you out of the Moodle app.`,
       "If you do nothing, your data is deleted automatically when the access period you chose expires.",
       html`Administering an LMS? See <a href="#universities">For universities and LMS admins</a>.`,
     ],
@@ -329,9 +336,25 @@ const en = {
     uniOptOutTitle: "Requesting an opt-out",
     uniOptOut: [
       html`If you would prefer that your institution not be supported, email <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> from an official institutional address. Include your concerns and any policy or legal basis, so we can resolve the request quickly for both sides.`,
+      "We kindly ask that requests be non-confidential. An opt-out affects hundreds of students, so to keep trust and transparency in this open-source project, we share approved takedown requests in the project's public channels as proof to the community. For the fastest and smoothest resolution, please confirm that your request may be shared publicly once a takedown is approved. We do not publish requests that concern a proven privacy issue, security flaw or incident, or a newly discovered security or design flaw.",
       "Sending a request does not by itself guarantee removal. We review every request and reply. In many cases a scoped, official integration addresses the concern better than a block, so we would welcome a conversation first.",
       "Opted-out institutions are not listed on the hosted version at mcp4lms.com. Their LMS address is also added to a blocklist in the open-source code, so self-hosted copies do not work with it out of the box.",
     ],
+    hostTitle: "Hosted MCP for institutions",
+    hostIntro:
+      "We encourage institutions to offer their own hosted MCP service, tailored to their policies, infrastructure and systems. You are welcome to fork Mcp4Lms and deploy your own instance.",
+    hostCommunity:
+      "In that case, the community can help on a voluntary basis to bring Mcp4Lms in as an official resource that your institution hosts, governs, manages and provides. Running it yourself gives you greater control over:",
+    hostControls: [
+      "Consent and how students connect",
+      "Access logging. The open-source and hosted versions do not keep access or usage logs.",
+      "AI policies and which tools are allowed",
+      "Permissions, entity controls and role-based access control (RBAC)",
+    ],
+    hostContact: (repo: string) =>
+      html`Reach out to <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> to collaborate, or deploy your own customized instance from the <a href="${repo}" target="_blank" rel="noopener">source code</a> under the AGPL-3.0 license, which requires sharing your changes with the users of your service. Collaboration depends on the volunteers' availability at the time and is not guaranteed.`,
+    hostNonProfit:
+      "Mcp4Lms is a strictly non-profit, experimental and volunteer-run project. We do not ask for any payment for this.",
     disclaimerTitle: "Disclaimer",
     disclaimer: [
       "Mcp4Lms is provided free of charge, as is, without warranty of any kind. It is an independent open-source project released under the AGPL-3.0 license. It is not affiliated with, endorsed by or operated by any university, Moodle HQ, Anthropic, OpenAI, Google, Anysphere (Cursor) or any other AI tool vendor.",
@@ -375,6 +398,12 @@ export type Strings = typeof en;
 const tr: Strings = {
   langName: "Türkçe",
   nav: { connect: "Bağlan", account: "Hesap", privacy: "Gizlilik", language: "Dil" },
+  lmsPicker: {
+    title: "Üniversitenizi seçin",
+    lead: "Bu bağlantı üniversitenizin LMS'inde bir sayfa açar. Önce üniversitenizi seçin.",
+    notAvailable: "henüz mevcut değil",
+    close: "Kapat",
+  },
   footer: {
     open: "Açık kaynak · ücretsiz · AGPL-3.0",
     affiliation: "Hiçbir üniversite, Moodle HQ, Anthropic, OpenAI, Google veya Anysphere ile bağlantılı değildir.",
@@ -443,6 +472,7 @@ const tr: Strings = {
     h1: "LMS'inizi bağlayın",
     lead: "Bilgisayarda yaklaşık bir dakika sürer. Bunu yalnızca bir kez yaparsınız.",
     experimental: html`Mcp4Lms deneysel bir açık kaynak projesidir. Lütfen kendi sorumluluğunuzda devam edin. Erişiminizi korumak için alınan önlemleri <a href="/privacy#encryption">burada</a> görebilirsiniz.`,
+    chrome: html`En iyi sonuç için bilgisayarda <a href="https://www.google.com/chrome/" target="_blank" rel="noopener">Google Chrome</a> kullanın. Diğer tarayıcılar yer imi uygulamacıklarını engelleyebilir veya gizleyebilir.`,
     mobile: "Telefonda görünüyorsunuz. Bu adımı bilgisayarda yapın. Sonrasında Claude telefonunuzda da çalışır.",
     pickTitle: "Üniversitenizi seçin",
     pickLead: "Mcp4Lms üniversitenizin LMS'ine bağlanır. Sizinkini seçin.",
@@ -472,11 +502,11 @@ const tr: Strings = {
       html`Yalnızca güvendiğiniz sitelerden betik yapıştırın. Bu betik sadece LMS'iniz ve ${host} ile konuşur ve açık kaynaklıdır.`,
     step2: "LMS'inizi açın",
     step2Lead: "Sorarsa her zamanki gibi giriş yapın.",
-    open: (host: string) => `${host} adresini açın ↗`,
     step3: (bookmark: string) => html`LMS'iniz açıkken <b>${bookmark}</b> yer imine tıklayın`,
     step3Lead:
       "Kişisel anahtarınızla buraya geri döneceksiniz. Yer imi LMS'inizden bir uygulama tokeni ister, yalnızca bu hizmetin okuyabileceği şekilde şifreler ve buraya gönderir. Parolanızı asla görmez.",
     js: {
+      open: "{host} adresini açın ↗",
       clickedHere: "Buraya tıklamayın. Yukarıya, gerçek yer imleri çubuğunuza sürükleyin.",
       dragging: "Bu pencerenin üstündeki yer imleri çubuğuna bırakın.",
       notAdded: "Henüz eklenmedi. En yukarıya, adres çubuğunun altına kadar sürükleyin.",
@@ -635,8 +665,8 @@ const tr: Strings = {
     tokenTitle: "LMS tokeninin kendisi neler yapabilir?",
     token:
       "Bu, resmî Moodle uygulamasının kullandığı türde bir tokendir; yani teknik olarak o uygulamada yapabildiğiniz her şeyi, örneğin ödev teslim etmeyi veya mesaj göndermeyi yapabilir. Mcp4Lms onu yalnızca önceden belirlenmiş salt okunur çağrılar için kullanır. Verilerinizi burada silmeniz veya sürenin dolması, tokeni LMS'inizde iptal etmez.",
-    tokenReset: (url: string) =>
-      html`İptal etmek için <a href="${url}" target="_blank" rel="noopener noreferrer">LMS'inizdeki Güvenlik anahtarları</a> sayfasını açın ve Moodle mobil hizmetine ait anahtarı sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.`,
+    tokenReset: (a: (text: string) => unknown) =>
+      html`İptal etmek için ${a("LMS'inizdeki Güvenlik anahtarları")} sayfasını açın ve Moodle mobil hizmetine ait anahtarı sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.`,
     knowTitle: "Bilmeniz gerekenler",
     know: [
       "Yapay zekâ bir ders dosyasını okuduğunda dosya içeriği sunucumuz üzerinden yapay zekâ aracına yalnızca bir kez aktarılır; saklanmaz ve günlüğe yazılmaz.",
@@ -656,8 +686,8 @@ const tr: Strings = {
     optOut: [
       html`<a href="/account">Hesap</a> sayfasını açın, anahtarınızı girin ve tek tek uygulamaların bağlantısını kesin veya her şeyi silin. Silme işlemi hesabınızı, şifrelenmiş tokeni ve tüm uygulama bağlantılarını anında kaldırır.`,
       "Anahtarınızı mı kaybettiniz? LMS'inizden yeniden bağlanın. Bu işlem yeni bir anahtar verir ve eskisini geçersiz kılar; ardından hesabınızı Hesap sayfasından silebilirsiniz.",
-      (url: string) =>
-        html`LMS üzerindeki uygulama tokenini de sonlandırmak için onu LMS'inizdeki <a href="${url}" target="_blank" rel="noopener noreferrer">Güvenlik anahtarları</a> sayfasından sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.`,
+      (a: (text: string) => unknown) =>
+        html`LMS üzerindeki uygulama tokenini de sonlandırmak için onu LMS'inizdeki ${a("Güvenlik anahtarları")} sayfasından sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.`,
       "Hiçbir şey yapmazsanız verileriniz, seçtiğiniz erişim süresi dolduğunda otomatik olarak silinir.",
       html`Bir LMS yönetiyorsanız <a href="#universities">Üniversiteler ve LMS yöneticileri için</a> bölümüne bakın.`,
     ],
@@ -675,9 +705,25 @@ const tr: Strings = {
     uniOptOutTitle: "Hariç tutulma talebi",
     uniOptOut: [
       html`Kurumunuzun desteklenmemesini tercih ediyorsanız resmî bir kurum adresinden <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın. Talebin her iki taraf için de hızlı sonuçlanabilmesi için endişelerinizi ve dayandığınız politika veya hukuki gerekçeleri belirtin.`,
+      "Taleplerin gizli olmayan bir yazışma olarak gönderilmesini rica ederiz. Bir hariç tutulma kararı yüzlerce öğrenciyi etkiler; bu nedenle bu açık kaynak projede güveni ve şeffaflığı korumak için onaylanan kaldırma taleplerini, topluluğa kanıt olarak projenin herkese açık kanallarında paylaşırız. En hızlı ve sorunsuz çözüm için, kaldırma onaylandığında talebinizin herkese açık paylaşılabileceğini lütfen teyit edin. Kanıtlanmış bir gizlilik sorunu, güvenlik zafiyeti veya güvenlik olayı ya da yeni keşfedilen bir güvenlik veya tasarım kusuru içeren talepler herkese açık paylaşılmaz.",
       "Talep göndermek tek başına hariç tutulmayı garanti etmez. Her talebi inceler ve yanıtlarız. Çoğu durumda kapsamı belirlenmiş resmî bir entegrasyon, endişeleri doğrudan engellemekten daha iyi karşılar; bu nedenle önce bir görüşme yapmayı memnuniyetle karşılarız.",
       "Hariç tutulan kurumlar, mcp4lms.com üzerinde barındırılan sürümde listelenmez. Kurumun LMS adresi ayrıca açık kaynak koddaki engelleme listesine eklenir; böylece kendi sunucusunda çalıştırılan kopyalar bu kurumla varsayılan olarak çalışmaz.",
     ],
+    hostTitle: "Kurumlar için barındırılan MCP",
+    hostIntro:
+      "Kurumları, kendi politikalarına, altyapılarına ve sistemlerine göre uyarlanmış, kendi barındırdıkları bir MCP hizmeti sunmaya teşvik ediyoruz. Mcp4Lms'i fork'layarak, yani kopyalayıp değiştirerek kendi sürümünüzü kurabilirsiniz.",
+    hostCommunity:
+      "Bu durumda topluluk, Mcp4Lms'in kurumunuz tarafından barındırılan, yönetilen ve sunulan resmî bir kaynak hâline gelmesine gönüllü olarak yardımcı olabilir. Hizmeti kendiniz çalıştırmak size şu konularda daha fazla kontrol sağlar:",
+    hostControls: [
+      "Onay süreci ve öğrencilerin nasıl bağlandığı",
+      "Erişim kayıtları. Açık kaynak sürüm ve barındırılan sürüm erişim veya kullanım kaydı tutmaz.",
+      "Yapay zekâ politikaları ve hangi araçlara izin verildiği",
+      "İzinler, varlık denetimleri ve rol tabanlı erişim denetimi (RBAC)",
+    ],
+    hostContact: (repo: string) =>
+      html`İş birliği için <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazabilir ya da <a href="${repo}" target="_blank" rel="noopener">kaynak koddan</a> AGPL-3.0 lisansına uygun olarak kendi özelleştirilmiş kopyanızı kurabilirsiniz. Bu lisans, yaptığınız değişiklikleri hizmetinizin kullanıcılarıyla paylaşmanızı gerektirir. İş birliği, o dönemde gönüllülerin uygunluğuna bağlıdır ve garanti edilmez.`,
+    hostNonProfit:
+      "Mcp4Lms tamamen kâr amacı gütmeyen, deneysel ve gönüllülerce yürütülen bir projedir. Bunun için herhangi bir ücret talep etmeyiz.",
     disclaimerTitle: "Sorumluluk reddi",
     disclaimer: [
       "Mcp4Lms ücretsiz olarak, \"olduğu gibi\" ve hiçbir garanti verilmeksizin sunulur. AGPL-3.0 lisansıyla yayımlanan bağımsız bir açık kaynak projesidir. Hiçbir üniversite, Moodle HQ, Anthropic, OpenAI, Google, Anysphere (Cursor) veya başka bir yapay zekâ aracı sağlayıcısıyla bağlantılı değildir; bu kuruluşlar tarafından onaylanmamakta veya işletilmemektedir.",

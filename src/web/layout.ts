@@ -1,6 +1,7 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { LANGS, strings, type Lang } from "./i18n";
+import { universitiesFor, universityName } from "../universities";
 
 type Child = HtmlEscapedString | Promise<HtmlEscapedString> | string;
 
@@ -13,6 +14,22 @@ export interface View {
 
 /** The skull is the project's mark: used in text wherever an icon would go. */
 export const MARK = "☠";
+
+/**
+ * A link to a page on the student's LMS (`path` like "/my/"). It has no fixed LMS address: clicking it opens the
+ * university picker (`lmsPicker` in `page`), which then opens `path` on the chosen university's LMS in a new tab.
+ */
+export const lmsLink = (path: string, text: unknown, cls?: string) =>
+  html`<a href="#" data-lms="${path}" aria-haspopup="dialog"${cls ? html` class="${cls}"` : ""}>${text}</a>`;
+
+/** University list shared by the Connect page picker and the LMS-link modal. */
+export const uniCss = `.uni{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font:inherit;cursor:pointer;text-decoration:none;transition:border-color .15s,background .15s}
+.uni+.uni{margin-top:8px}
+.uni:hover:not([disabled]){border-color:var(--ink)}
+.uni[disabled]{cursor:default;color:var(--ink-3)}
+.uni .mark{font-size:1.5rem;line-height:1;-webkit-text-stroke:.5px currentColor}
+.uni b{display:block}.uni small{color:var(--ink-3);font-family:var(--mono)}
+.uni .soon{margin-left:auto;font-size:.8rem;color:var(--ink-3)}`;
 
 const css = `
 :root{--bg:#fff;--surface:#f6f6f4;--surface-2:#ededea;--ink:#0a0a0a;--ink-2:#5f5f5a;--ink-3:#9b9b95;--line:#e7e7e3;--ok:#1a7f4b;--ok-bg:#edf8f1;--warn-bg:#fff7e0;--err:#c0392b;--err-bg:#fdf1ef;
@@ -78,6 +95,12 @@ details ol{padding-left:1.3em}details li{margin:6px 0}
 footer{max-width:1040px;margin:0 auto;padding:0 20px 48px;color:var(--ink-3);font-size:.85rem;display:flex;flex-wrap:wrap;gap:6px 18px}
 footer a{color:inherit}
 @media (max-width:640px){.nav .in{padding:12px 16px}.nav nav a{padding:7px 9px;font-size:.9rem}.nav nav .lang{margin-left:2px;padding-left:4px}.nav nav .lang a{padding-left:6px;padding-right:6px}.card{padding:22px}main{padding-top:36px;padding-left:16px;padding-right:16px}.card.step{flex-direction:column;gap:10px}.hint{overflow-wrap:anywhere}}
+.lms-pick{border:0;padding:0;border-radius:var(--r);width:min(480px,calc(100% - 32px));box-shadow:0 30px 60px -20px rgba(0,0,0,.35);color:var(--ink)}
+.lms-pick::backdrop{background:rgba(10,10,10,.4)}
+.lms-pick>div{padding:28px;position:relative}
+.lms-pick .x{position:absolute;top:14px;right:14px;border:0;background:none;font:1.4rem/1 var(--sans);color:var(--ink-2);cursor:pointer;padding:6px 10px;border-radius:999px}
+.lms-pick .x:hover{background:var(--surface)}
+.lms-pick h2{padding-right:32px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 `;
 
@@ -103,6 +126,7 @@ export function page(
 ) {
   const { env, lang, path } = v;
   const t = strings[lang];
+  const unis = universitiesFor(env);
   const { title, body, script, wide, current, description } = opts;
   // Link previews (WhatsApp, Facebook, X) need absolute URLs; the image is a 1200×630 JPEG per language in public/.
   const canonical = env.PUBLIC_URL + path.split("?")[0];
@@ -137,7 +161,7 @@ ${description ? html`<meta name="description" content="${description}">` : ""}
 <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<style>${raw(css)}</style>
+<style>${raw(css)}${raw(uniCss)}</style>
 </head>
 <body>
 <header class="nav" id="nav"><div class="in">
@@ -145,6 +169,17 @@ ${description ? html`<meta name="description" content="${description}">` : ""}
   <nav>${nav("/connect", t.nav.connect)}${nav("/account", t.nav.account)}${nav("/privacy", t.nav.privacy)}<span class="lang" role="group" aria-label="${t.nav.language}">${LANGS.map(langLink)}</span><a class="gh" href="${env.REPO_URL}" target="_blank" rel="noopener" aria-label="Source on GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/></svg></a></nav>
 </div></header>
 <main${wide ? raw(' class="wide"') : ""}>${body}</main>
+<dialog class="lms-pick" id="lms-pick" aria-labelledby="lms-pick-title"><div>
+  <form method="dialog"><button class="x" aria-label="${t.lmsPicker.close}" title="${t.lmsPicker.close}">×</button></form>
+  <h2 id="lms-pick-title">${t.lmsPicker.title}</h2>
+  <p class="muted small">${t.lmsPicker.lead}</p>
+  ${unis.map((u) => {
+    const inner = html`<span class="mark" aria-hidden="true">${MARK}</span><span><b>${universityName(u, lang)}</b><small>${new URL(u.lmsUrl).host}</small></span>`;
+    return u.available
+      ? html`<a class="uni" data-base="${u.lmsUrl.replace(/\/+$/, "")}" href="${u.lmsUrl}" target="_blank" rel="noopener noreferrer">${inner}<span class="soon" aria-hidden="true">↗</span></a>`
+      : html`<button type="button" class="uni" disabled>${inner}<span class="soon">${t.lmsPicker.notAvailable}</span></button>`;
+  })}
+</div></dialog>
 <footer>
   <span>${t.footer.open}</span>
   <span>${t.footer.affiliation}</span>
@@ -152,10 +187,17 @@ ${description ? html`<meta name="description" content="${description}">` : ""}
   <a href="/privacy#universities">${t.footer.universities}</a>
   <a href="/privacy#disclaimer">${t.footer.disclaimer}</a>
 </footer>
-<script>addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>8),{passive:true});${script ? raw(script) : ""}</script>
+<script>addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>8),{passive:true});${raw(lmsPickerJs)}${script ? raw(script) : ""}</script>
 </body>
 </html>`;
 }
+
+// Any [data-lms] link opens the university picker; each university's link then points at the same path on its LMS.
+// Clicking a university follows its link (new tab) and closes the picker; so does clicking the backdrop.
+const lmsPickerJs = `(function(){const d=document.getElementById('lms-pick');
+document.addEventListener('click',e=>{const l=e.target.closest&&e.target.closest('[data-lms]');if(!l)return;e.preventDefault();
+  d.querySelectorAll('a[data-base]').forEach(a=>a.href=a.dataset.base+l.dataset.lms);d.showModal()});
+d.addEventListener('click',e=>{if(e.target===d||e.target.closest('a[data-base]'))d.close()})})();`;
 
 /** Safely embed data in an inline <script>. */
 export function jsData(value: unknown): string {
