@@ -236,9 +236,10 @@ const en = {
     never:
       "Your LMS or Microsoft password. You log in on your LMS's own site, in your own browser. The Connect bookmark only asks your LMS for an app token, the same kind the official Moodle app uses, and encrypts it before sending it here.",
     canTitle: "What Claude can do",
-    can: "Read courses, course contents, deadlines, assignments and submission status, grades and announcements. Mcp4Lms allows a fixed list of read-only LMS functions. It can't submit, post, message or change anything.",
+    can: "Read courses, course contents, deadlines, assignments and submission status, grades, announcements and the text of course files (PDF, Word, PowerPoint, text). Mcp4Lms allows a fixed list of read-only LMS functions. It can't submit, post, message or change anything.",
     knowTitle: "What you should know",
     know: [
+      "When the AI reads a course file, its contents pass through our server to the AI tool once and aren't stored or logged.",
       "Your key and the token can read your LMS data. Keep the key private.",
       "While Claude is using Mcp4Lms, our server handles your token in memory. You're trusting that the server runs the published open-source code.",
       "When your connection expires (or you delete it), we delete the encrypted token and disconnect apps, but we do not revoke the app token on the LMS itself; you can end it there by logging out of all devices on your LMS.",
@@ -488,9 +489,10 @@ const tr: Strings = {
     never:
       "LMS veya Microsoft parolanız. LMS'inizin kendi sitesinde, kendi tarayıcınızda giriş yaparsınız. Bağlan yer imi LMS'inizden yalnızca resmî Moodle uygulamasının kullandığı türden bir uygulama belirteci ister ve buraya göndermeden önce şifreler.",
     canTitle: "Claude ne yapabilir",
-    can: "Dersleri, ders içeriklerini, son teslim tarihlerini, ödevleri ve teslim durumunu, notları ve duyuruları okuyabilir. Mcp4Lms yalnızca sabit bir salt okunur LMS işlevleri listesine izin verir. Teslim edemez, gönderi paylaşamaz, mesaj atamaz ve hiçbir şeyi değiştiremez.",
+    can: "Dersleri, ders içeriklerini, son teslim tarihlerini, ödevleri ve teslim durumunu, notları, duyuruları ve ders dosyalarının metnini (PDF, Word, PowerPoint, düz metin) okuyabilir. Mcp4Lms yalnızca sabit bir salt okunur LMS işlevleri listesine izin verir. Teslim edemez, gönderi paylaşamaz, mesaj atamaz ve hiçbir şeyi değiştiremez.",
     knowTitle: "Bilmeniz gerekenler",
     know: [
+      "Yapay zekâ bir ders dosyasını okuduğunda içeriği sunucumuz üzerinden yapay zekâ aracına bir kez iletilir; saklanmaz ve kaydedilmez.",
       "Anahtarınız ve belirteç LMS verilerinizi okuyabilir. Anahtarı gizli tutun.",
       "Claude Mcp4Lms'i kullanırken sunucumuz belirtecinizi bellekte işler. Sunucunun yayımlanan açık kaynak kodu çalıştırdığına güveniyorsunuz.",
       "Bağlantınızın süresi dolduğunda (veya onu sildiğinizde) şifrelenmiş belirteci siler ve uygulamaların bağlantısını keseriz; ancak LMS'in kendisindeki uygulama belirtecini iptal etmeyiz. Onu orada sonlandırmak için LMS'inizde tüm cihazlardan çıkış yapın.",

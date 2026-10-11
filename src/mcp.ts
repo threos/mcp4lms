@@ -6,6 +6,7 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { z } from "zod";
 import { accountExpiresAt, isExpired } from "./accounts";
 import { MoodleClient, MoodleError, isoDate, stripHtml, stripToken } from "./moodle";
+import { DEFAULT_TEXT_CHARS, MAX_TEXT_CHARS, fetchFileText } from "./files";
 
 export interface GrantProps extends Record<string, unknown> {
   accountId: string;
@@ -279,6 +280,37 @@ function buildServer(env: Env, props: GrantProps): McpServer {
           message: stripHtml(d.message, 3000),
         }));
       })(),
+  );
+
+  server.registerTool(
+    "read_file",
+    {
+      title: "Read a course file",
+      description:
+        "Downloads a file from the LMS and returns its text: PDF, Word (.docx), PowerPoint (.pptx), plain text/code and HTML. Use a file url from get_course_contents or list_assignments. Long files are cut at max_chars.",
+      inputSchema: {
+        url: z.string().url().describe("File url from get_course_contents or list_assignments"),
+        max_chars: z.number().int().min(1000).max(MAX_TEXT_CHARS).optional().describe(`Characters to return (default ${DEFAULT_TEXT_CHARS})`),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ url, max_chars }) => {
+      try {
+        const f = await fetchFileText(props.lmsUrl, props.lmsToken, url, max_chars ?? DEFAULT_TEXT_CHARS);
+        const head = [
+          `File: ${f.name}`,
+          `Type: ${f.kind}${f.pages ? ` (${f.pages} ${f.kind === "pptx" ? "slides" : "pages"})` : ""}, ${Math.round(f.size / 1024)} KB`,
+          f.truncated ? `Note: text cut at ${f.text.length} characters; call again with a larger max_chars for the rest.` : "",
+          f.note ? `Note: ${f.note}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n");
+        return { content: [{ type: "text", text: `${head}\n\n${f.text}` }] };
+      } catch (e) {
+        const msg = e instanceof MoodleError && e.isAuthError ? reconnectMessage(env) : `Could not read the file: ${e instanceof Error ? e.message : String(e)}`;
+        return { content: [{ type: "text", text: msg }], isError: true };
+      }
+    },
   );
 
   return server;

@@ -8,7 +8,7 @@ Connect Claude (or any MCP client) to your university's LMS. Works with Moodleâ„
 
 Students connect once with a bookmark, get a personal key, and add one URL to Claude.
 Claude then gets **read-only** access to their courses, contents, deadlines, assignments,
-grades and announcements.
+grades, announcements and the text of course files.
 
 <p align="center">
   <img src="docs/tutorial.gif" alt="Connecting Moodle to Claude with the Mcp4Lms bookmark" width="720">
@@ -126,7 +126,8 @@ Moodle app works).
 - Desktop only for connecting (bookmarklets and DevTools aren't practical on phones).
   After connecting, Claude works anywhere.
 - No rate limiting yet on `/api/connect`, `/authorize` and `/account`.
-- File downloads aren't exposed; tools return file names and LMS links.
+- `read_file` converts PDF, Word, PowerPoint, text and HTML files to text (15 MB limit, no OCR for
+  scanned PDFs). Other file types return only name, size and link.
 - While a request is being served, the server handles the LMS token in memory. Users have
   to trust that the deployment runs this code.
 - Expiry (and deletion) does not revoke the app token on the LMS itself: that would need the
