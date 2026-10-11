@@ -623,6 +623,7 @@ export function privacyPage(v: View) {
     ["know", p.knowTitle],
     ["security", p.securityTitle],
     ["opt-out", p.optOutTitle],
+    ["universities", p.uniTitle],
     ["disclaimer", p.disclaimerTitle],
   ];
   return page(v, {
@@ -640,7 +641,7 @@ addEventListener('scroll',act,{passive:true});addEventListener('resize',act);act
         .toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
         .toc a{display:block;padding:4px 0 4px 14px;margin-left:-1px;border-left:2px solid transparent;color:var(--ink-2);text-decoration:none;transition:color .15s,border-color .15s}
         .toc a:hover{color:var(--ink)}.toc a.on{color:var(--ink);border-left-color:var(--ink);font-weight:560}
-        .q{margin:36px 0 0}.q h2{margin-bottom:.4em}.q ul,.q ol{padding-left:1.2em;color:var(--ink-2)}.q li{margin:6px 0}.q p{color:var(--ink-2)}
+        .q{margin:36px 0 0}.q h2{margin-bottom:.4em}.q ul,.q ol{padding-left:1.2em;color:var(--ink-2)}.q li{margin:6px 0}.q h3{font-size:1.05rem;font-weight:620;letter-spacing:-.01em;margin:22px 0 8px}.q li b{color:var(--ink);font-weight:600}.q p{color:var(--ink-2)}
         .crypto h3{font-size:1.05rem;font-weight:620;letter-spacing:-.01em;margin:26px 0 10px}
         .crypto ol{margin:0 0 4px}
         .diagram{margin:0 0 14px;background:var(--surface);border-radius:var(--r);padding:14px 10px}
@@ -713,6 +714,14 @@ addEventListener('scroll',act,{passive:true});addEventListener('resize',act);act
       </section>
       <section class="q" id="opt-out"><h2>${t.privacy.optOutTitle}</h2>
         <ol>${t.privacy.optOut.map((s) => html`<li>${typeof s === "function" ? s(lmsTokenUrl(v.env)) : s}</li>`)}</ol>
+      </section>
+      <section class="q" id="universities"><h2>${p.uniTitle}</h2>
+        <p>${p.uniIntro}</p>
+        <p>${p.uniCollab}</p>
+        <ul>${p.uniBenefits.map((b) => html`<li>${b}</li>`)}</ul>
+        <p>${p.uniContact}</p>
+        <h3>${p.uniOptOutTitle}</h3>
+        <ul>${p.uniOptOut.map((b) => html`<li>${b}</li>`)}</ul>
       </section>
       <section class="q" id="disclaimer"><h2>${t.privacy.disclaimerTitle}</h2>
         ${t.privacy.disclaimer.map((p) => html`<p>${p}</p>`)}

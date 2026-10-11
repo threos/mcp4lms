@@ -35,6 +35,7 @@ const en = {
     affiliation: "Not affiliated with any university, Moodle HQ, Anthropic, OpenAI, Google or Anysphere.",
     trademark: "Moodle™ is a trademark of Moodle Pty Ltd. Other names and logos belong to their owners.",
     disclaimer: "Disclaimer",
+    universities: "For universities",
   },
   copy: "Copy",
   copied: "Copied",
@@ -312,7 +313,24 @@ const en = {
       (url: string) =>
         html`To also end the app token on your LMS, reset it under <a href="${url}" target="_blank" rel="noopener noreferrer">Security keys</a> there. This may sign you out of the Moodle app.`,
       "If you do nothing, your data is deleted automatically when the access period you chose expires.",
-      html`If you administer an LMS and want it excluded from Mcp4Lms, email <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a>.`,
+      html`Administering an LMS? See <a href="#universities">For universities and LMS admins</a>.`,
+    ],
+    uniTitle: "For universities and LMS admins",
+    uniIntro:
+      "Mcp4Lms uses the same app token mechanism as the official Moodle mobile app. A student signs in on your LMS themselves, and the token is used only for a fixed set of read-only web service calls on that student's own data. No course data is stored, and the token is encrypted with a key only the student holds.",
+    uniCollab:
+      "Today this works without your involvement, which is not ideal for anyone. We would much rather build an official, consent-gated and standardized path with you: a client registered on your LMS, a standard OAuth flow instead of a bookmark, and permission scopes that you define.",
+    uniBenefits: [
+      html`<b>Your institution</b> decides which data and permissions are allowed, and can revoke access centrally.`,
+      html`<b>Students</b> sign in with their usual login and give clear, fine-grained consent, which is easier and more secure.`,
+      html`<b>Maintainers</b> use proper verification, client registration and standard OAuth flows instead of workarounds.`,
+    ],
+    uniContact: html`We would be glad, and would prefer, to work with your IT and legal teams on an integration that fits your policies and your students' needs. Write to <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a>.`,
+    uniOptOutTitle: "Requesting an opt-out",
+    uniOptOut: [
+      html`If you would prefer that your institution not be supported, email <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> from an official institutional address. Include your concerns and any policy or legal basis, so we can resolve the request quickly for both sides.`,
+      "Sending a request does not by itself guarantee removal. We review every request and reply. In many cases a scoped, official integration addresses the concern better than a block, so we would welcome a conversation first.",
+      "Opted-out institutions are not listed on the hosted version at mcp4lms.com. Their LMS address is also added to a blocklist in the open-source code, so self-hosted copies do not work with it out of the box.",
     ],
     disclaimerTitle: "Disclaimer",
     disclaimer: [
@@ -362,6 +380,7 @@ const tr: Strings = {
     affiliation: "Hiçbir üniversite, Moodle HQ, Anthropic, OpenAI, Google veya Anysphere ile bağlantılı değildir.",
     trademark: "Moodle™, Moodle Pty Ltd'nin tescilli markasıdır. Diğer adlar ve logolar sahiplerine aittir.",
     disclaimer: "Sorumluluk reddi",
+    universities: "Üniversiteler için",
   },
   copy: "Kopyala",
   copied: "Kopyalandı",
@@ -640,7 +659,24 @@ const tr: Strings = {
       (url: string) =>
         html`LMS üzerindeki uygulama tokenini de sonlandırmak için onu LMS'inizdeki <a href="${url}" target="_blank" rel="noopener noreferrer">Güvenlik anahtarları</a> sayfasından sıfırlayın. Bu, Moodle uygulamasından çıkış yapmanıza neden olabilir.`,
       "Hiçbir şey yapmazsanız verileriniz, seçtiğiniz erişim süresi dolduğunda otomatik olarak silinir.",
-      html`Bir LMS yönetiyorsanız ve Mcp4Lms kapsamı dışında kalmasını istiyorsanız <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın.`,
+      html`Bir LMS yönetiyorsanız <a href="#universities">Üniversiteler ve LMS yöneticileri için</a> bölümüne bakın.`,
+    ],
+    uniTitle: "Üniversiteler ve LMS yöneticileri için",
+    uniIntro:
+      "Mcp4Lms, resmî Moodle mobil uygulamasının kullandığı uygulama tokeni mekanizmasını kullanır. Öğrenci LMS'inize kendisi giriş yapar ve token yalnızca o öğrencinin kendi verileri üzerinde, önceden belirlenmiş salt okunur web servisi çağrıları için kullanılır. Ders verisi saklanmaz ve token yalnızca öğrencinin sahip olduğu bir anahtarla şifrelenir.",
+    uniCollab:
+      "Bu yöntem bugün kurumunuzun katılımı olmadan çalışıyor ve bu durum hiçbir taraf için ideal değildir. Sizinle birlikte resmî, onaya dayalı ve standart bir yol oluşturmayı tercih ederiz: LMS'inizde kayıtlı bir istemci, yer imi yerine standart bir OAuth akışı ve sizin belirlediğiniz izin kapsamları.",
+    uniBenefits: [
+      html`<b>Kurumunuz</b> hangi verilere ve izinlere erişilebileceğine karar verir ve erişimi merkezi olarak iptal edebilir.`,
+      html`<b>Öğrenciler</b> alışık oldukları girişle ve net, ayrıntılı bir onay vererek daha kolay ve daha güvenli şekilde bağlanır.`,
+      html`<b>Geliştiriciler</b> geçici çözümler yerine resmî doğrulama, istemci kaydı ve standart OAuth akışlarını kullanır.`,
+    ],
+    uniContact: html`Kurumunuzun politikalarına ve öğrencilerinizin ihtiyaçlarına uygun bir entegrasyon için BT ve hukuk ekiplerinizle birlikte çalışmaktan memnuniyet duyarız ve bunu tercih ederiz. <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazabilirsiniz.`,
+    uniOptOutTitle: "Hariç tutulma talebi",
+    uniOptOut: [
+      html`Kurumunuzun desteklenmemesini tercih ediyorsanız resmî bir kurum adresinden <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın. Talebin her iki taraf için de hızlı sonuçlanabilmesi için endişelerinizi ve dayandığınız politika veya hukuki gerekçeleri belirtin.`,
+      "Talep göndermek tek başına hariç tutulmayı garanti etmez. Her talebi inceler ve yanıtlarız. Çoğu durumda kapsamı belirlenmiş resmî bir entegrasyon, endişeleri doğrudan engellemekten daha iyi karşılar; bu nedenle önce bir görüşme yapmayı memnuniyetle karşılarız.",
+      "Hariç tutulan kurumlar, mcp4lms.com üzerinde barındırılan sürümde listelenmez. Kurumun LMS adresi ayrıca açık kaynak koddaki engelleme listesine eklenir; böylece kendi sunucusunda çalıştırılan kopyalar bu kurumla varsayılan olarak çalışmaz.",
     ],
     disclaimerTitle: "Sorumluluk reddi",
     disclaimer: [

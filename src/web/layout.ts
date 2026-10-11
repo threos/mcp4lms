@@ -149,6 +149,7 @@ ${description ? html`<meta name="description" content="${description}">` : ""}
   <span>${t.footer.open}</span>
   <span>${t.footer.affiliation}</span>
   <span>${t.footer.trademark}</span>
+  <a href="/privacy#universities">${t.footer.universities}</a>
   <a href="/privacy#disclaimer">${t.footer.disclaimer}</a>
 </footer>
 <script>addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>8),{passive:true});${script ? raw(script) : ""}</script>
