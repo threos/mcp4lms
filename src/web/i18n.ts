@@ -240,6 +240,7 @@ const en = {
     knowTitle: "What you should know",
     know: [
       "When the AI reads a course file, its contents pass through our server to the AI tool once and aren't stored or logged.",
+      "Links outside the LMS are fetched only after you confirm them in the conversation, and never with your LMS credentials.",
       "Your key and the token can read your LMS data. Keep the key private.",
       "While Claude is using Mcp4Lms, our server handles your token in memory. You're trusting that the server runs the published open-source code.",
       "When your connection expires (or you delete it), we delete the encrypted token and disconnect apps, but we do not revoke the app token on the LMS itself; you can end it there by logging out of all devices on your LMS.",
@@ -493,6 +494,7 @@ const tr: Strings = {
     knowTitle: "Bilmeniz gerekenler",
     know: [
       "Yapay zekâ bir ders dosyasını okuduğunda içeriği sunucumuz üzerinden yapay zekâ aracına bir kez iletilir; saklanmaz ve kaydedilmez.",
+      "LMS dışındaki bağlantılar yalnızca sohbette siz onayladıktan sonra ve hiçbir zaman LMS kimlik bilgilerinizle getirilmez.",
       "Anahtarınız ve belirteç LMS verilerinizi okuyabilir. Anahtarı gizli tutun.",
       "Claude Mcp4Lms'i kullanırken sunucumuz belirtecinizi bellekte işler. Sunucunun yayımlanan açık kaynak kodu çalıştırdığına güveniyorsunuz.",
       "Bağlantınızın süresi dolduğunda (veya onu sildiğinizde) şifrelenmiş belirteci siler ve uygulamaların bağlantısını keseriz; ancak LMS'in kendisindeki uygulama belirtecini iptal etmeyiz. Onu orada sonlandırmak için LMS'inizde tüm cihazlardan çıkış yapın.",

@@ -127,7 +127,8 @@ Moodle app works).
   After connecting, Claude works anywhere.
 - No rate limiting yet on `/api/connect`, `/authorize` and `/account`.
 - `read_file` converts PDF, Word, PowerPoint, text and HTML files to text (15 MB limit, no OCR for
-  scanned PDFs). Other file types return only name, size and link.
+  scanned PDFs). Other file types return only name, size and link. Links outside the LMS are
+  fetched anonymously and only after the AI has asked the user and passes `confirmed_by_user`.
 - While a request is being served, the server handles the LMS token in memory. Users have
   to trust that the deployment runs this code.
 - Expiry (and deletion) does not revoke the app token on the LMS itself: that would need the

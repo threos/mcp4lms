@@ -15,6 +15,8 @@ export interface FileText {
   mimeType: string;
   size: number;
   kind: "pdf" | "docx" | "pptx" | "text" | "html" | "other";
+  /** True when the file came from outside the LMS (fetched without any credentials). */
+  external: boolean;
   pages?: number;
   text: string;
   truncated: boolean;
@@ -45,6 +47,33 @@ export function lmsFileUrl(lmsUrl: string, url: string): URL | null {
   u.searchParams.delete("token");
   u.searchParams.delete("wstoken");
   u.searchParams.delete("forcedownload");
+  u.hash = "";
+  return u;
+}
+
+/** Thrown for URLs outside the LMS when the user has not confirmed the fetch. */
+export class NeedsConfirmation extends Error {
+  constructor(public readonly host: string) {
+    super("needs confirmation");
+  }
+}
+
+/**
+ * A URL outside the LMS that is safe enough to fetch anonymously: http(s) only, a real
+ * host name (no raw IPs, localhost or internal names). Returns null otherwise.
+ */
+export function externalUrl(url: string): URL | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+  const h = u.hostname.toLowerCase();
+  if (!h.includes(".") || h.endsWith(".local") || h.endsWith(".internal") || h.endsWith(".localhost")) return null;
+  if (/^[\d.]+$/.test(h) || h.startsWith("[") || h.includes(":")) return null; // raw IPv4 / IPv6
+  if (u.username || u.password) return null;
   u.hash = "";
   return u;
 }
@@ -116,12 +145,24 @@ export async function fetchFileText(
   token: string,
   url: string,
   maxChars = DEFAULT_TEXT_CHARS,
+  opts: { confirmedByUser?: boolean } = {},
 ): Promise<FileText> {
-  const target = lmsFileUrl(lmsUrl, url);
-  if (!target) throw new Error("Only files hosted on the LMS can be read (links from get_course_contents or list_assignments).");
+  let target = lmsFileUrl(lmsUrl, url);
+  let external = false;
+  if (!target) {
+    // Not an LMS file. Same-origin non-file paths are never fetched (they need the session);
+    // anything else is fetched anonymously, and only once the user has said yes.
+    const ext = externalUrl(url);
+    if (!ext || ext.origin === new URL(lmsUrl).origin) {
+      throw new Error("Only files hosted on the LMS can be read (links from get_course_contents or list_assignments).");
+    }
+    if (!opts.confirmedByUser) throw new NeedsConfirmation(ext.host);
+    target = ext;
+    external = true;
+  }
   const name = fileNameOf(target);
   const fetchUrl = new URL(target);
-  fetchUrl.searchParams.set("token", token);
+  if (!external) fetchUrl.searchParams.set("token", token); // the LMS token never leaves the LMS origin
 
   // The LMS (or its WAF) answers 403 to requests without a User-Agent, which Workers' fetch omits.
   const res = await fetch(fetchUrl, {
@@ -136,7 +177,7 @@ export async function fetchFileText(
   const buf = new Uint8Array(await res.arrayBuffer());
   if (buf.byteLength > MAX_FILE_BYTES) throw new Error(`File is too large to read (limit ${MAX_FILE_BYTES / 1048576} MB).`);
   // Moodle answers a token problem with a JSON/HTML error page instead of the file.
-  if (mime === "application/json" && kindOf(name, "") !== "text") {
+  if (!external && mime === "application/json" && kindOf(name, "") !== "text") {
     const err = JSON.parse(new TextDecoder().decode(buf)) as { message?: string; error?: string };
     throw new Error(`The LMS refused the file: ${err.message ?? err.error ?? "unknown error"}`);
   }
@@ -176,5 +217,5 @@ export async function fetchFileText(
   const limit = Math.min(Math.max(maxChars, 1000), MAX_TEXT_CHARS);
   const truncated = text.length > limit;
   if (truncated) text = text.slice(0, limit);
-  return { name, mimeType: mime || "application/octet-stream", size, kind, pages, text, truncated, note };
+  return { name, mimeType: mime || "application/octet-stream", size, kind, external, pages, text, truncated, note };
 }
