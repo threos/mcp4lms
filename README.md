@@ -2,7 +2,7 @@
   <img src="public/flag.png" alt="Mcp4Lms logo" width="140">
 </p>
 
-<h1 align="center">Mcp4Lms</h1>
+<h1 align="center">🏴‍☠️ Mcp4Lms</h1>
 
 Connect Claude (or any MCP client) to your university's LMS. Works with Moodle™.
 
