@@ -64,7 +64,7 @@ revokes all OAuth grants.
 **Expiry.** When connecting, the student picks how long the stored token stays usable (24 hours,
 7, 30 or 90 days; default 90) and can change it later on the Account page. After the chosen
 moment, `/authorize`, `/account` and `/mcp` refuse the account (the MCP endpoint answers with a
-"reconnect" error without calling the LMS), and the daily cron revokes its grants, which deletes
+"reconnect" error without calling the LMS), and the hourly cron revokes its grants, which deletes
 the per-grant encrypted copies of the token, and deletes the row. Connecting again resets the expiry.
 
 ## Project layout
@@ -116,6 +116,8 @@ client (for example `npx @modelcontextprotocol/inspector`).
    npx wrangler d1 create mcp4lms
    npm run db:migrate:remote
    ```
+   The `ratelimits` `namespace_id`s in `wrangler.jsonc` only need to be unique within your
+   Cloudflare account; change them if they clash with another Worker's.
 3. Set the connect key (rotating it invalidates bookmarks people already saved):
    ```bash
    npm run -s keys -- --print | npx wrangler secret put CONNECT_PRIVATE_KEY
@@ -129,7 +131,10 @@ Moodle app works).
 
 - Desktop only for connecting (bookmarklets and DevTools aren't practical on phones).
   After connecting, Claude works anywhere.
-- No rate limiting yet on `/api/connect`, `/authorize` and `/account`.
+- Rate limits are per IP (Workers Rate Limiting, see `src/ratelimit.ts`) on `/api/connect`,
+  `/register`, `/token`, the key forms (`POST /authorize`, `/account`) and `/dl`. They are
+  approximate (counted per Cloudflare location) and kept generous, since a campus NAT or
+  Claude's servers put many users behind one IP. `/mcp` is not limited by IP.
 - `read_file` converts PDF, Word, PowerPoint, text and HTML files to text (30 MB limit). Images,
   scanned PDFs (no text layer) and other file types are attached as the original file (up to
   10 MB, images 5 MB); whether the client can read an attached PDF depends on the client. Links

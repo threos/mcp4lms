@@ -4,7 +4,14 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
-  "observability": { "enabled": true },
+  // Console logs only. Request (invocation) logs are off: they would record download-link
+  // URLs, which carry the link's secret, and students' IPs and user agents.
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+
+  // No *.workers.dev URL or per-version preview URLs: the custom domain below is the only
+  // way in. Preview versions would run unreleased code against production D1/KV.
+  "workers_dev": false,
+  "preview_urls": false,
 
   // Static files (logo, favicon). Served before the Worker for matching paths.
   "assets": { "directory": "./public" },
@@ -37,6 +44,16 @@
     { "pattern": "www.mcp4lms.com", "custom_domain": true }
   ],
 
-  // Daily cleanup of expired OAuth records.
-  "triggers": { "crons": ["17 3 * * *"] }
+  // Per-IP rate limits (see src/ratelimit.ts). period is 10 or 60 seconds; namespace_id is any
+  // integer that is unique within the Cloudflare account.
+  "ratelimits": [
+    { "name": "RL_CONNECT", "namespace_id": "4101", "simple": { "limit": 10, "period": 60 } },
+    { "name": "RL_REGISTER", "namespace_id": "4102", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_TOKEN", "namespace_id": "4103", "simple": { "limit": 60, "period": 60 } },
+    { "name": "RL_KEY", "namespace_id": "4104", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_DOWNLOAD", "namespace_id": "4105", "simple": { "limit": 30, "period": 60 } }
+  ],
+
+  // Hourly cleanup of expired OAuth records, accounts and download links.
+  "triggers": { "crons": ["17 * * * *"] }
 }
