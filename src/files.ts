@@ -5,22 +5,33 @@ import { extractText } from "unpdf";
 import { strFromU8, unzipSync } from "fflate";
 import { stripHtml } from "./moodle";
 
-export const MAX_FILE_BYTES = 15 * 1024 * 1024;
+export const MAX_FILE_BYTES = 30 * 1024 * 1024;
 export const DEFAULT_TEXT_CHARS = 80_000;
 export const MAX_TEXT_CHARS = 250_000;
+/** Largest original file handed back to the client (base64 adds a third on top). */
+export const MAX_RAW_BYTES = 10 * 1024 * 1024;
+/** Claude's limit for a single image. */
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const IMAGE_MIME: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif", webp: "image/webp" };
 const FETCH_TIMEOUT_MS = 25_000;
 
 export interface FileText {
   name: string;
   mimeType: string;
   size: number;
-  kind: "pdf" | "docx" | "pptx" | "text" | "html" | "other";
+  kind: "pdf" | "docx" | "pptx" | "text" | "html" | "image" | "other";
   /** True when the file came from outside the LMS (fetched without any credentials). */
   external: boolean;
   pages?: number;
   text: string;
   truncated: boolean;
   note?: string;
+  /** The original file, when its text alone isn't enough (scans, images) or the caller asked for it. */
+  raw?: { bytes: Uint8Array; mimeType: string; asImage: boolean };
+  /** Set when the original was wanted but is too large to attach; offer a download link instead. */
+  rawTooLarge?: boolean;
+  /** The LMS url the file was read from (no token), for download links. Unset for external files. */
+  lmsTarget?: URL;
 }
 
 /**
@@ -78,7 +89,22 @@ export function externalUrl(url: string): URL | null {
   return u;
 }
 
-function fileNameOf(u: URL): string {
+/**
+ * GET a file. `token` is added for LMS files only (the LMS token never leaves the LMS origin);
+ * pass null for an external url.
+ */
+export function fetchFile(target: URL, token: string | null): Promise<Response> {
+  const fetchUrl = new URL(target);
+  if (token) fetchUrl.searchParams.set("token", token);
+  // The LMS (or its WAF) answers 403 to requests without a User-Agent, which Workers' fetch omits.
+  return fetch(fetchUrl, {
+    headers: { "user-agent": "Mcp4Lms/0.1 (+https://github.com/threos/mcp4lms)", accept: "*/*" },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    redirect: "follow",
+  });
+}
+
+export function fileNameOf(u: URL): string {
   const last = u.pathname.split("/").pop() ?? "file";
   try {
     return decodeURIComponent(last);
@@ -92,6 +118,7 @@ function kindOf(name: string, mime: string): FileText["kind"] {
   if (ext === "pdf" || mime === "application/pdf") return "pdf";
   if (ext === "docx") return "docx";
   if (ext === "pptx") return "pptx";
+  if (IMAGE_MIME[ext] || Object.values(IMAGE_MIME).includes(mime)) return "image";
   if (ext === "html" || ext === "htm" || mime.startsWith("text/html")) return "html";
   if (
     ["txt", "md", "markdown", "csv", "json", "xml", "yaml", "yml", "tex", "py", "java", "c", "cpp", "h", "js", "ts", "sql", "sh", "r"].includes(ext) ||
@@ -145,7 +172,7 @@ export async function fetchFileText(
   token: string,
   url: string,
   maxChars = DEFAULT_TEXT_CHARS,
-  opts: { confirmedByUser?: boolean } = {},
+  opts: { confirmedByUser?: boolean; includeRaw?: boolean } = {},
 ): Promise<FileText> {
   let target = lmsFileUrl(lmsUrl, url);
   let external = false;
@@ -161,15 +188,7 @@ export async function fetchFileText(
     external = true;
   }
   const name = fileNameOf(target);
-  const fetchUrl = new URL(target);
-  if (!external) fetchUrl.searchParams.set("token", token); // the LMS token never leaves the LMS origin
-
-  // The LMS (or its WAF) answers 403 to requests without a User-Agent, which Workers' fetch omits.
-  const res = await fetch(fetchUrl, {
-    headers: { "user-agent": "Mcp4Lms/0.1 (+https://github.com/threos/mcp4lms)", accept: "*/*" },
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    redirect: "follow",
-  });
+  const res = await fetchFile(target, external ? null : token);
   if (!res.ok) throw new Error(`The LMS refused the file (HTTP ${res.status}).`);
   const mime = (res.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
   const declared = Number(res.headers.get("content-length") ?? 0);
@@ -184,6 +203,7 @@ export async function fetchFileText(
 
   const kind = kindOf(name, mime);
   const size = buf.byteLength; // pdf.js detaches the buffer, so read this first
+  const original = kind === "pdf" && size <= MAX_RAW_BYTES ? buf.slice() : buf;
   let text = "";
   let pages: number | undefined;
   let note: string | undefined;
@@ -210,6 +230,8 @@ export async function fetchFileText(
     case "text":
       text = new TextDecoder().decode(buf);
       break;
+    case "image":
+      break;
     default:
       note = "This file type isn't converted to text. The user can open it from the LMS link.";
   }
@@ -217,5 +239,24 @@ export async function fetchFileText(
   const limit = Math.min(Math.max(maxChars, 1000), MAX_TEXT_CHARS);
   const truncated = text.length > limit;
   if (truncated) text = text.slice(0, limit);
-  return { name, mimeType: mime || "application/octet-stream", size, kind, external, pages, text, truncated, note };
+  // Hand over the original file when there is no text to read (scanned PDF, photo, other type)
+  // or when asked, so the client can look at it itself.
+  let raw: FileText["raw"];
+  let rawTooLarge = false;
+  if (opts.includeRaw || !text) {
+    const ext = name.toLowerCase().split(".").pop() ?? "";
+    const rawMime = kind === "image" ? (IMAGE_MIME[ext] ?? mime) : kind === "pdf" ? "application/pdf" : mime || "application/octet-stream";
+    const asImage = kind === "image";
+    const cap = asImage ? MAX_IMAGE_BYTES : MAX_RAW_BYTES;
+    if (size <= cap) {
+      raw = { bytes: original, mimeType: rawMime, asImage };
+      if (kind === "pdf" && !text) note = "The PDF has no text layer (scanned pages?); the original file is attached instead.";
+      else if (!text) note = asImage ? "The image is attached." : "This file type isn't converted to text; the original file is attached.";
+    } else {
+      note = `${note ? note + " " : ""}The original file is too large to attach (limit ${cap / 1048576} MB).`;
+      rawTooLarge = true;
+    }
+  }
+  const lmsTarget = external ? undefined : target;
+  return { name, mimeType: mime || "application/octet-stream", size, kind, external, pages, text, truncated, note, raw, rawTooLarge, lmsTarget };
 }

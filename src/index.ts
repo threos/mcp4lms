@@ -1,5 +1,6 @@
 import OAuthProvider, { getOAuthApi, type OAuthProviderOptions } from "@cloudflare/workers-oauth-provider";
 import { purgeExpiredAccounts } from "./accounts";
+import { purgeExpiredDownloadLinks } from "./downloads";
 import app, { SCOPE } from "./app";
 import { mcpApiHandler } from "./mcp";
 
@@ -36,5 +37,6 @@ export default {
     // Accounts past the expiry their user chose: revoke every grant (which deletes the
     // per-grant encrypted copies of the LMS token) and drop the row.
     await purgeExpiredAccounts(env, getOAuthApi(opts, env));
+    await purgeExpiredDownloadLinks(env);
   },
 } satisfies ExportedHandler<Env>;

@@ -12,6 +12,8 @@ import {
   type UnlockedAccount,
 } from "./accounts";
 import { decryptConnectPayload, md5Hex, sha256Hex } from "./crypto";
+import { deleteDownloadLinks, openDownloadLink } from "./downloads";
+import { fetchFile, fileNameOf } from "./files";
 import { MoodleClient, MoodleError, normalizeSiteUrl } from "./moodle";
 import type { GrantProps } from "./mcp";
 import { SECURITY_HEADERS, type View } from "./web/layout";
@@ -228,6 +230,28 @@ async function renderAccount(c: Ctx, key: string, account: UnlockedAccount, noti
 const refuseAccount = (c: Ctx, reason: "invalid" | "expired") =>
   c.html(accountLoginPage(view(c), reason === "expired" ? t(c).account.keyExpired : t(c).account.wrongKey), 400);
 
+// Temporary signed link from the MCP tools: streams one LMS file with the token added server-side.
+app.get("/dl/:link", async (c) => {
+  const s = t(c).download;
+  const link = await openDownloadLink(c.env, c.req.param("link"));
+  if (!link) return c.html(messagePage(view(c), s.invalidTitle, s.invalid), 410);
+  const res = await fetchFile(link.target, link.token).catch(() => null);
+  const type = res?.headers.get("content-type") ?? "";
+  const name = fileNameOf(link.target);
+  // Moodle answers a token or permission problem with a JSON error instead of the file.
+  if (!res?.ok || !res.body || (type.startsWith("application/json") && !name.toLowerCase().endsWith(".json"))) {
+    return c.html(messagePage(view(c), s.failedTitle, s.failed), 502);
+  }
+  const headers = new Headers({
+    "Content-Type": type || "application/octet-stream",
+    "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
+    "X-Robots-Tag": "noindex",
+  });
+  const length = res.headers.get("content-length");
+  if (length) headers.set("Content-Length", length);
+  return new Response(res.body, { headers });
+});
+
 app.get("/account", (c) => c.html(accountLoginPage(view(c))));
 
 app.post("/account", async (c) => {
@@ -243,6 +267,8 @@ app.post("/account/revoke", async (c) => {
   const u = await unlockAccount(c.env, key);
   if (!u.ok) return refuseAccount(c, u.reason);
   await c.env.OAUTH_PROVIDER.revokeGrant(String(form.get("grant") ?? ""), u.account.id);
+  // Links aren't tied to a grant, so revoking any grant ends all of the account's download links.
+  await deleteDownloadLinks(c.env, u.account.id);
   return c.html(await renderAccount(c, key, u.account, t(c).account.revoked));
 });
 

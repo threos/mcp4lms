@@ -12,6 +12,7 @@ import {
   verifyUserKey,
   type UserKey,
 } from "./crypto";
+import { deleteDownloadLinks } from "./downloads";
 
 interface AccountRow {
   id: string;
@@ -80,6 +81,7 @@ export async function upsertAccount(
       .bind(verifier, ciphertext, now, expiresAt, accountId)
       .run();
     await revokeAllGrants(oauth, accountId);
+    await deleteDownloadLinks(env, accountId);
   } else {
     await env.DB.prepare(
       "INSERT INTO accounts (id, lms_url, lms_user_id, key_verifier, token_ciphertext, created_at, updated_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -135,6 +137,7 @@ export async function accountExpiresAt(env: Env, accountId: string): Promise<num
 
 export async function deleteAccount(env: Env, oauth: OAuthHelpers, accountId: string): Promise<void> {
   await revokeAllGrants(oauth, accountId);
+  await deleteDownloadLinks(env, accountId);
   await env.DB.prepare("DELETE FROM accounts WHERE id = ?").bind(accountId).run();
 }
 

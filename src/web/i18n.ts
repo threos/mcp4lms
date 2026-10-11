@@ -258,6 +258,12 @@ const en = {
   },
 
   notFound: { title: "Not found", message: "This page doesn't exist.", home: "Home" },
+  download: {
+    invalidTitle: "Link expired",
+    invalid: "This download link is invalid or has expired. Ask Claude for a new one.",
+    failedTitle: "Download failed",
+    failed: "The LMS refused the file. Try again, or open it from the LMS.",
+  },
 
   /** Errors returned by /api/connect; the finish page shows them verbatim. */
   api: {
@@ -514,6 +520,12 @@ const tr: Strings = {
   },
 
   notFound: { title: "Bulunamadı", message: "Bu sayfa mevcut değil.", home: "Ana sayfa" },
+  download: {
+    invalidTitle: "Bağlantının süresi doldu",
+    invalid: "Bu indirme bağlantısı geçersiz ya da süresi dolmuş. Claude'dan yeni bir bağlantı isteyin.",
+    failedTitle: "İndirme başarısız",
+    failed: "LMS dosyayı vermedi. Tekrar deneyin ya da dosyayı LMS'ten açın.",
+  },
 
   api: {
     missing: "Veri eksik. Bağlan sayfasından yeniden başlayın.",
