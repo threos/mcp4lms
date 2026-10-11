@@ -472,7 +472,7 @@ const tr: Strings = {
     h1: "LMS'inizi bağlayın",
     lead: "Bilgisayarda yaklaşık bir dakika sürer. Bunu yalnızca bir kez yaparsınız.",
     experimental: html`Mcp4Lms deneysel bir açık kaynak projesidir. Lütfen kendi sorumluluğunuzda devam edin. Erişiminizi korumak için alınan önlemleri <a href="/privacy#encryption">burada</a> görebilirsiniz.`,
-    chrome: html`En iyi sonuç için bilgisayarda <a href="https://www.google.com/chrome/" target="_blank" rel="noopener">Google Chrome</a> kullanın. Diğer tarayıcılar yer imi uygulamacıklarını engelleyebilir veya gizleyebilir.`,
+    chrome: html`En iyi sonuç için bilgisayarda <a href="https://www.google.com/chrome/" target="_blank" rel="noopener">Google Chrome</a> kullanın. Diğer tarayıcılar yer işareti uygulamacıklarını engelleyebilir veya gizleyebilir.`,
     mobile: "Telefonda görünüyorsunuz. Bu adımı bilgisayarda yapın. Sonrasında Claude telefonunuzda da çalışır.",
     pickTitle: "Üniversitenizi seçin",
     pickLead: "Mcp4Lms üniversitenizin LMS'ine bağlanır. Sizinkini seçin.",
@@ -480,17 +480,17 @@ const tr: Strings = {
     change: "Değiştir",
     affiliation: (uni: unknown) =>
       html`Mcp4Lms bağımsız bir açık kaynak projesidir. ${uni} ile bağlantılı değildir ve onun tarafından onaylanmamıştır.`,
-    step1: "Yer imini ekleyin",
-    step1Lead: "Aşağıdaki düğmeyi tarayıcınızın yer imleri çubuğuna sürükleyin.",
+    step1: "Yer işaretini ekleyin",
+    step1Lead: "Aşağıdaki düğmeyi tarayıcınızın yer işaretleri çubuğuna sürükleyin.",
     mockApps: "Uygulamalar",
     mockCalendar: "Takvim",
-    dragTitle: "Beni yer imleri çubuğunuza sürükleyin",
-    hint: "Bunu yukarıya, yer imleri çubuğunuza sürükleyin.",
-    barHidden: (shortcut: unknown) => html`Yer imleri çubuğu gizli mi? ${shortcut} tuşlarına basın.`,
+    dragTitle: "Beni yer işaretleri çubuğunuza sürükleyin",
+    hint: "Bunu yukarıya, yer işaretleri çubuğunuza sürükleyin.",
+    barHidden: (shortcut: unknown) => html`Yer işaretleri çubuğu gizli mi? ${shortcut} tuşlarına basın.`,
     added: "Ekledim",
     byHand: "Sürükleyemiyor musunuz? Elle ekleyin",
-    copyBookmark: "Yer imi adresini kopyala",
-    byHand2: html`Yer imleri çubuğuna sağ tıklayın ve <b>Sayfa ekle…</b> (Chrome, Edge) ya da <b>Yer İmi Ekle…</b> (Firefox) seçeneğini seçin.`,
+    copyBookmark: "Yer işareti adresini kopyala",
+    byHand2: html`Yer işaretleri çubuğuna sağ tıklayın ve <b>Sayfa ekle…</b> (Chrome, Edge) ya da <b>Yer İmi Ekle…</b> (Firefox) seçeneğini seçin.`,
     byHand3: (name: string) => html`Ad: <code>${name}</code>. URL: yapıştırın.`,
     console: "Bunun yerine konsola betik yapıştırın",
     copyScript: "Betiği kopyala",
@@ -502,15 +502,15 @@ const tr: Strings = {
       html`Yalnızca güvendiğiniz sitelerden betik yapıştırın. Bu betik sadece LMS'iniz ve ${host} ile konuşur ve açık kaynaklıdır.`,
     step2: "LMS'inizi açın",
     step2Lead: "Sorarsa her zamanki gibi giriş yapın.",
-    step3: (bookmark: string) => html`LMS'iniz açıkken <b>${bookmark}</b> yer imine tıklayın`,
+    step3: (bookmark: string) => html`LMS'iniz açıkken <b>${bookmark}</b> yer işaretine tıklayın`,
     step3Lead:
-      "Kişisel anahtarınızla buraya geri döneceksiniz. Yer imi LMS'inizden bir uygulama tokeni ister, yalnızca bu hizmetin okuyabileceği şekilde şifreler ve buraya gönderir. Parolanızı asla görmez.",
+      "Kişisel anahtarınızla buraya geri döneceksiniz. Yer işareti LMS'inizden bir uygulama tokeni ister, yalnızca bu hizmetin okuyabileceği şekilde şifreler ve buraya gönderir. Parolanızı asla görmez.",
     js: {
       open: "{host} adresini açın ↗",
-      clickedHere: "Buraya tıklamayın. Yukarıya, gerçek yer imleri çubuğunuza sürükleyin.",
-      dragging: "Bu pencerenin üstündeki yer imleri çubuğuna bırakın.",
+      clickedHere: "Buraya tıklamayın. Yukarıya, gerçek yer işaretleri çubuğunuza sürükleyin.",
+      dragging: "Bu pencerenin üstündeki yer işaretleri çubuğuna bırakın.",
       notAdded: "Henüz eklenmedi. En yukarıya, adres çubuğunun altına kadar sürükleyin.",
-      picture: "Bu sadece bir resim. Tarayıcınızın kendi yer imleri çubuğuna, bu sayfanın üstüne bırakın.",
+      picture: "Bu sadece bir resim. Tarayıcınızın kendi yer işaretleri çubuğuna, bu sayfanın üstüne bırakın.",
       added: "Eklendi. 2. adımla devam edin.",
     },
   },
@@ -620,10 +620,10 @@ const tr: Strings = {
       "LMS tokeniniz, Mcp4Lms'in derslerinizi okumasını sağlayan şeydir. Aşağıda tokenin nereye gittiğini ve kimin görebildiğini bulabilirsiniz.",
     connectTitle: "Bağlanırken",
     connectAlt:
-      "Şema: tarayıcınız LMS'inize giriş yapar ve Bağlan yer imine tıklar. LMS bir uygulama tokeni döndürür. Yer imi tokeni şifreler ve Mcp4Lms'e gönderir; Mcp4Lms tokeni kişisel anahtarınızla yeniden şifreler ve yalnızca bunu saklar. Kişisel anahtarınız size bir kez gösterilir.",
+      "Şema: tarayıcınız LMS'inize giriş yapar ve Bağlan yer işaretine tıklar. LMS bir uygulama tokeni döndürür. Yer işareti tokeni şifreler ve Mcp4Lms'e gönderir; Mcp4Lms tokeni kişisel anahtarınızla yeniden şifreler ve yalnızca bunu saklar. Kişisel anahtarınız size bir kez gösterilir.",
     connectPoints: [
       "LMS'inize her zamanki gibi giriş yaparsınız. Parolanızı hiçbir zaman görmeyiz.",
-      "Bağlan yer imi LMS'inizden bir uygulama tokeni alır ve bize göndermeden önce şifreler. Bunu yalnızca sunucumuz açabilir.",
+      "Bağlan yer işareti LMS'inizden bir uygulama tokeni alır ve bize göndermeden önce şifreler. Bunu yalnızca sunucumuz açabilir.",
       "Sunucumuz tokeni kişisel anahtarınızla yeniden şifreler ve yalnızca bunu saklar. Anahtarınızı saklamadığımız için saklanan tokeni siz olmadan açamayız.",
     ],
     requestTitle: "Claude soru sorduğunda",
@@ -645,7 +645,7 @@ const tr: Strings = {
     ],
     techTitle: "Teknik ayrıntılar",
     tech: [
-      "Bağlantı: yer imi tokeni sunucunun RSA-OAEP açık anahtarıyla şifreler; böylece token bir URL'de, tarayıcı geçmişinizde veya konsolda hiçbir zaman düz metin olarak görünmez.",
+      "Bağlantı: yer işareti tokeni sunucunun RSA-OAEP açık anahtarıyla şifreler; böylece token bir URL'de, tarayıcı geçmişinizde veya konsolda hiçbir zaman düz metin olarak görünmez.",
       "Saklama: token, kişisel anahtarınızdan türetilen (HKDF) bir anahtarla AES-256-GCM kullanılarak şifrelenir. Anahtarın kendisi değil, yalnızca bir doğrulama değeri saklanır.",
       "Kullanım: bir uygulamayı bağladığınızda token o uygulamanın bağlantısına, uygulamanın kendi erişim tokeniyle yeniden şifrelenerek yerleştirilir. Her istekte tek bir salt okunur LMS çağrısı için bellekte çözülür.",
     ],
@@ -659,7 +659,7 @@ const tr: Strings = {
       "Adınız, e-posta adresiniz, parolanız, ders içerikleriniz veya notlarınız saklanmaz. Ders verileri yalnızca Claude istekte bulunduğunda sunucumuz üzerinden Claude'a aktarılır; kaydedilmez ve günlüğe yazılmaz.",
     neverTitle: "Hiçbir zaman görmediğimiz veriler",
     never:
-      "LMS veya Microsoft parolanız. LMS'e kendi tarayıcınızdan, LMS'in kendi sitesi üzerinden giriş yaparsınız. Bağlan yer imi LMS'ten yalnızca resmî Moodle uygulamasının kullandığı türde bir uygulama tokeni ister ve bu tokeni bize göndermeden önce şifreler.",
+      "LMS veya Microsoft parolanız. LMS'e kendi tarayıcınızdan, LMS'in kendi sitesi üzerinden giriş yaparsınız. Bağlan yer işareti LMS'ten yalnızca resmî Moodle uygulamasının kullandığı türde bir uygulama tokeni ister ve bu tokeni bize göndermeden önce şifreler.",
     canTitle: "Claude'un yapabildikleri",
     can: "Dersleri, ders içeriklerini, son teslim tarihlerini, ödevleri ve teslim durumunu, notları, duyuruları ve ders dosyalarının metnini (PDF, Word, PowerPoint, düz metin) okuyabilir. Mcp4Lms yalnızca önceden belirlenmiş, salt okunur LMS işlevlerine izin verir. Claude ödev teslim edemez, gönderi paylaşamaz, mesaj gönderemez ve hiçbir veriyi değiştiremez.",
     tokenTitle: "LMS tokeninin kendisi neler yapabilir?",
@@ -695,7 +695,7 @@ const tr: Strings = {
     uniIntro:
       "Mcp4Lms, resmî Moodle mobil uygulamasının kullandığı uygulama tokeni mekanizmasını kullanır. Öğrenci LMS'inize kendisi giriş yapar ve token yalnızca o öğrencinin kendi verileri üzerinde, önceden belirlenmiş salt okunur web servisi çağrıları için kullanılır. Ders verisi saklanmaz ve token yalnızca öğrencinin sahip olduğu bir anahtarla şifrelenir.",
     uniCollab:
-      "Bu yöntem bugün kurumunuzun katılımı olmadan çalışıyor ve bu durum hiçbir taraf için ideal değildir. Sizinle birlikte resmî, onaya dayalı ve standart bir yol oluşturmayı tercih ederiz: LMS'inizde kayıtlı bir istemci, yer imi yerine standart bir OAuth akışı ve sizin belirlediğiniz izin kapsamları.",
+      "Bu yöntem bugün kurumunuzun katılımı olmadan çalışıyor ve bu durum hiçbir taraf için ideal değildir. Sizinle birlikte resmî, onaya dayalı ve standart bir yol oluşturmayı tercih ederiz: LMS'inizde kayıtlı bir istemci, yer işareti yerine standart bir OAuth akışı ve sizin belirlediğiniz izin kapsamları.",
     uniBenefits: [
       html`<b>Kurumunuz</b> hangi verilere ve izinlere erişilebileceğine karar verir ve erişimi merkezi olarak iptal edebilir.`,
       html`<b>Öğrenciler</b> alışık oldukları girişle ve net, ayrıntılı bir onay vererek daha kolay ve daha güvenli şekilde bağlanır.`,
@@ -743,8 +743,8 @@ const tr: Strings = {
 
   api: {
     missing: "Veri eksik. Bağlan sayfasından yeniden başlayın.",
-    invalid: "Bu bağlantı linki geçersiz. Yer iminiz eski olabilir: Bağlan sayfasından yeniden ekleyin.",
-    expired: "Bu bağlantı linkinin süresi doldu. LMS'te yer imine tekrar tıklayın.",
+    invalid: "Bu bağlantı linki geçersiz. Yer işaretiniz eski olabilir: Bağlan sayfasından yeniden ekleyin.",
+    expired: "Bu bağlantı linkinin süresi doldu. LMS'te yer işaretine tekrar tıklayın.",
     unexpected: "LMS'ten beklenmedik bir yanıt geldi.",
     used: "Bu bağlantı linki zaten kullanıldı.",
     rejected: "LMS tokeni reddetti.",
@@ -755,8 +755,8 @@ const tr: Strings = {
   },
 
   bookmarklet: {
-    wrongSite: "Mcp4Lms LMS'inizde ({host}) çalışır. Şimdi açılsın mı? Sonra yer imine tekrar tıklayın.",
-    login: "Mcp4Lms: lütfen önce LMS'inize giriş yapın, sonra yer imine tekrar tıklayın.",
+    wrongSite: "Mcp4Lms LMS'inizde ({host}) çalışır. Şimdi açılsın mı? Sonra yer işaretine tekrar tıklayın.",
+    login: "Mcp4Lms: lütfen önce LMS'inize giriş yapın, sonra yer işaretine tekrar tıklayın.",
   },
 };
 
