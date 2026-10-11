@@ -171,6 +171,9 @@ const en = {
       fileNote: "Keep this private. Anyone with it can read your courses through Mcp4Lms.",
       fileLost: "Lost it? Connect again at {url} to get a new one.",
       expires: "Expires on {date}. Connecting again resets it.",
+      continueTo: "Continue to {client} ({host})",
+      unknown: "We don't recognize this app. It will get read access to your courses at {host}. Continue only if you started this yourself from that app.",
+      phishing: "This looks like phishing: the app calls itself “{client}” but would send your access to {host}, which is not {brand}. Don't continue unless you're sure.",
     },
   },
 
@@ -183,6 +186,10 @@ const en = {
     keyHint: html`Starts with <code>m4l_</code>. You got it when you connected.`,
     redirect: (host: string) => html`You'll be sent back to <b>${host}</b>.`,
     loopback: html`<b>Note:</b> that's an app on this computer. Continue only if you started this from an app you trust.`,
+    unknown: (host: string) =>
+      html`<b>We don't recognize this app.</b> It will get read access to your courses and send you to <b>${host}</b>. Continue only if you started this yourself from that app.`,
+    phishing: (client: string, host: string, brand: string) =>
+      html`<b>This looks like phishing.</b> The app calls itself “${client}” but would send your access to <b>${host}</b>, which is not ${brand}. Don't continue unless you're sure.`,
     approve: "Approve",
     cancel: "Cancel",
     noKey: html`No key yet? <a href="/connect">Connect your LMS first</a> and you'll come back here.`,
@@ -490,6 +497,9 @@ const tr: Strings = {
       fileNote: "Bunu gizli tutun. Elinde bulunan herkes Mcp4Lms üzerinden derslerinizi okuyabilir.",
       fileLost: "Kaybettiniz mi? Yenisini almak için {url} adresinden yeniden bağlanın.",
       expires: "Süresi {date} tarihinde dolar. Yeniden bağlanmak süreyi sıfırlar.",
+      continueTo: "{client} uygulamasına devam edin ({host})",
+      unknown: "Bu uygulamayı tanımıyoruz. {host} adresinde derslerinize okuma erişimi alacak. Yalnızca bunu o uygulamadan kendiniz başlattıysanız devam edin.",
+      phishing: "Bu bir oltalama girişimine benziyor: uygulama kendini “{client}” olarak tanıtıyor ama erişiminizi {brand} olmayan {host} adresine gönderecek. Emin değilseniz devam etmeyin.",
     },
   },
 
@@ -502,6 +512,10 @@ const tr: Strings = {
     keyHint: html`<code>m4l_</code> ile başlar. Bağlandığınızda almıştınız.`,
     redirect: (host: string) => html`<b>${host}</b> adresine geri gönderileceksiniz.`,
     loopback: html`<b>Not:</b> bu, bu bilgisayardaki bir uygulama. Yalnızca güvendiğiniz bir uygulamadan başlattıysanız devam edin.`,
+    unknown: (host: string) =>
+      html`<b>Bu uygulamayı tanımıyoruz.</b> Derslerinize okuma erişimi alacak ve sizi <b>${host}</b> adresine gönderecek. Yalnızca bunu o uygulamadan kendiniz başlattıysanız devam edin.`,
+    phishing: (client: string, host: string, brand: string) =>
+      html`<b>Bu bir oltalama girişimine benziyor.</b> Uygulama kendini “${client}” olarak tanıtıyor ama erişiminizi ${brand} olmayan <b>${host}</b> adresine gönderecek. Emin değilseniz devam etmeyin.`,
     approve: "Onayla",
     cancel: "İptal",
     noKey: html`Henüz anahtarınız yok mu? <a href="/connect">Önce LMS'inizi bağlayın</a>, sonra buraya geri döneceksiniz.`,

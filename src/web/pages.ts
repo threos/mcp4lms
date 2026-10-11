@@ -5,10 +5,13 @@ import { bookmarkletHref, connectScript } from "./bookmarklet";
 import { strings, type Strings } from "./i18n";
 import { universitiesFor, universityName } from "../universities";
 import { DEFAULT_TTL, TTL_CHOICES } from "../accounts";
+import { classifyRedirect } from "../clients";
 
 const mcpUrl = (env: Env) => `${env.PUBLIC_URL}/mcp`;
 /** Moodle's "Security keys" page, where the student can reset or delete the app token at the LMS itself. */
 const lmsTokenUrl = (env: Env) => `${env.LMS_URL.replace(/\/+$/, "")}/user/managetoken.php`;
+/** How long the finish page offers to continue a consent started before connecting. */
+const PENDING_AUTH_MS = 10 * 60 * 1000;
 /** Same in every language: step 3 tells users to click it, so it must match what their bookmarks bar shows. */
 const BOOKMARK_NAME = `${MARK} Connect Mcp4Lms`;
 
@@ -366,6 +369,17 @@ const show=id=>{['working','failed','success'].forEach(x=>$(x).classList.toggle(
 const params=new URLSearchParams(location.hash.slice(1));const c=params.get('c');
 history.replaceState(null,'',location.pathname);
 let key='';
+// One pass, so a placeholder inside a client-chosen value is never replaced again.
+const fill=(s,v)=>s.replace(/\\{(\\w+)\\}/g,(m,k)=>typeof v[k]==='string'?v[k]:m);
+// A consent page opened before connecting (stored by /authorize). Only a recent, same-origin /authorize URL is accepted.
+function pendingAuth(){
+  let p=null;try{p=JSON.parse(localStorage.getItem('m4l_pending_auth')||'null')}catch(e){}
+  if(!p||typeof p.url!=='string'||typeof p.at!=='number'||!(Date.now()-p.at<${PENDING_AUTH_MS})||Date.now()<p.at)return null;
+  let u;try{u=new URL(p.url,location.origin)}catch(e){return null}
+  if(u.origin!==location.origin||u.pathname!=='/authorize')return null;
+  const str=(x,n)=>typeof x==='string'?x.slice(0,n):'';
+  return{url:u.origin+u.pathname+u.search,client:str(p.client,80)||'?',host:str(p.host,200)||'?',known:p.known===true,brand:str(p.brand,40)};
+}
 async function run(){
   if(!c){show('failed');$('error').textContent=T.nothing;return}
   try{
@@ -376,8 +390,13 @@ async function run(){
     key=d.key;$('key').textContent=key;$('hello').textContent=d.name?T.connectedName.replace('{name}',d.name.split(' ')[0]):T.connected;
     if(d.expiresAt)$('expiry').textContent=T.expires.replace('{date}',new Date(d.expiresAt).toLocaleString(document.documentElement.lang,{dateStyle:'long',timeStyle:'short'}));
     if(d.replaced)$('replaced').classList.remove('hidden');
-    let pending=null;try{pending=JSON.parse(localStorage.getItem('m4l_pending_auth')||'null')}catch(e){}
-    if(pending&&Date.now()-pending.at<30*60*1000){$('continue').href=pending.url.split('#')[0]+'#key='+encodeURIComponent(key);$('pending').classList.remove('hidden');$('manual').classList.add('hidden')}
+    const p=pendingAuth();
+    if(p){
+      $('continue').href=p.url+'#key='+encodeURIComponent(key);
+      $('continue').textContent=fill(T.continueTo,p);
+      if(!p.known){$('pending-warn').textContent=fill(p.brand?T.phishing:T.unknown,p);$('pending-warn').classList.remove('hidden')}
+      $('pending').classList.remove('hidden');$('manual').classList.add('hidden');
+    }
     show('success');
   }catch(e){show('failed');$('error').textContent=e.message}
 }
@@ -429,6 +448,7 @@ run();
           <div id="pending" class="hidden">
             <h2>${t.finish.backTitle}</h2>
             <p class="muted">${t.finish.backLead}</p>
+            <p id="pending-warn" class="note err small hidden"></p>
             <a class="btn" id="continue" href="#">${t.finish.continue}</a>
           </div>
           <div id="manual">
@@ -449,8 +469,10 @@ export function authorizePage(
 ) {
   const t = strings[v.lang];
   const { consent, handle, query, error } = opts;
+  const trust = classifyRedirect(consent);
+  const pending = { client: consent.clientName, host: trust.host, known: trust.known, brand: trust.brand };
   const script = `
-try{localStorage.setItem('m4l_pending_auth',JSON.stringify({url:location.href.split('#')[0],at:Date.now()}))}catch(e){}
+try{localStorage.setItem('m4l_pending_auth',JSON.stringify({...${jsData(pending)},url:location.href.split('#')[0],at:Date.now()}))}catch(e){}
 const h=new URLSearchParams(location.hash.slice(1));const k=h.get('key');
 if(k){document.getElementById('key').value=k;history.replaceState(null,'',location.pathname+location.search)}
 document.querySelector('form').addEventListener('submit',e=>{if(e.submitter&&e.submitter.value==='approve')try{localStorage.removeItem('m4l_pending_auth')}catch(e){}});
@@ -461,6 +483,13 @@ document.querySelector('form').addEventListener('submit',e=>{if(e.submitter&&e.s
     body: html`
       <h1>${t.authorize.h1(html`<span style="white-space:nowrap">${consent.clientName}</span>`)}</h1>
       <p class="lead">${t.authorize.lead(consent.clientName)}</p>
+      ${
+        trust.known
+          ? ""
+          : html`<p class="note err" role="alert">${
+              trust.brand ? t.authorize.phishing(consent.clientName, trust.host, trust.brand) : t.authorize.unknown(trust.host)
+            }</p>`
+      }
       <div class="card">
         <form method="post" action="/authorize">
           <input type="hidden" name="handle" value="${handle}">
