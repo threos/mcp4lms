@@ -705,7 +705,7 @@ const tr: Strings = {
     ],
     uniContact: html`Kurumunuzun politikalarına ve öğrencilerinizin ihtiyaçlarına uygun bir entegrasyon için BT ve hukuk ekiplerinizle birlikte çalışmaktan memnuniyet duyarız ve bunu tercih ederiz. <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazabilirsiniz.`,
     uniGuide: (url: string) =>
-      html`İş birlikleri, kendi sunucunuzda çalıştırma ve hariç tutulma talepleri için adım adım süreçler <a href="${url}" target="_blank" rel="noopener">kurumlar için rehberde</a> yer alır.`,
+      html`İş birlikleri, kendi sunucunuzda çalıştırma ve hariç tutulma talepleri için adım adım süreçler <a href="${url}" target="_blank" rel="noopener">kurumlar için rehberinde</a> yer alır.`,
     uniOptOutTitle: "Hariç tutulma talebi",
     uniOptOut: [
       html`Kurumunuzun desteklenmemesini tercih ediyorsanız resmî bir kurum adresinden <a href="mailto:maintainers@mcp4lms.com">maintainers@mcp4lms.com</a> adresine yazın. Talebin her iki taraf için de hızlı sonuçlanabilmesi için endişelerinizi ve dayandığınız politika veya hukuki gerekçeleri belirtin.`,
