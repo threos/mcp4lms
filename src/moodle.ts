@@ -81,18 +81,37 @@ export class MoodleClient {
 
 // --- Formatting helpers for tool output -------------------------------------
 
+const NAMED_ENTITIES: Record<string, string> = {
+  nbsp: " ",
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  ndash: "–",
+  mdash: "—",
+  hellip: "…",
+};
+
+/** Decode the HTML entities Moodle puts in text and in its "formatted" fields (e.g. `0&ndash;100`). */
+export function decodeEntities(s: string): string {
+  return s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) => {
+    if (e[0] === "#") {
+      const code = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : m;
+    }
+    return NAMED_ENTITIES[e.toLowerCase()] ?? m;
+  });
+}
+
 export function stripHtml(html: string | null | undefined, max = 2000): string {
   if (!html) return "";
-  const text = html
-    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, "")
-    .replace(/<br\s*\/?>|<\/(p|div|li|h\d|tr)>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+  const text = decodeEntities(
+    html
+      .replace(/<(script|style)[\s\S]*?<\/\1>/gi, "")
+      .replace(/<br\s*\/?>|<\/(p|div|li|h\d|tr)>/gi, "\n")
+      .replace(/<[^>]+>/g, ""),
+  )
     .replace(/[ \t]+/g, " ")
     .replace(/\n\s*\n+/g, "\n")
     .trim();

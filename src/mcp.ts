@@ -5,7 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
 import { accountExpiresAt, isExpired } from "./accounts";
-import { MoodleClient, MoodleError, isoDate, stripHtml, stripToken } from "./moodle";
+import { MoodleClient, MoodleError, decodeEntities, isoDate, stripHtml, stripToken } from "./moodle";
 import { DEFAULT_TEXT_CHARS, MAX_TEXT_CHARS, fetchFileText } from "./files";
 
 export interface GrantProps extends Record<string, unknown> {
@@ -14,6 +14,10 @@ export interface GrantProps extends Record<string, unknown> {
   lmsUserId: number;
   lmsToken: string;
 }
+
+/** Activity types whose calendar events are meeting sessions, not deadlines. */
+const MEETING_MODULES = new Set(["zoom", "bigbluebuttonbn", "teams", "googlemeet", "jitsi"]);
+const DEADLINE_PAGES = 4;
 
 type ToolResult = { content: { type: "text"; text: string }[]; isError?: boolean };
 
@@ -47,6 +51,21 @@ async function expiredResponse(request: Request, env: Env): Promise<Response> {
       ? { jsonrpc: "2.0", id, result: { content: [{ type: "text", text }], isError: true } }
       : { jsonrpc: "2.0", id, error: { code: -32001, message: text } };
   return Response.json(payload);
+}
+
+/** Moodle's "formatted" grade fields can hold HTML and entities (e.g. `0&ndash;100`). */
+const formatted = (v: string | null | undefined) => (v ? stripHtml(v, 200) || null : null);
+
+function gradeItem(g: any) {
+  return {
+    item: g.itemname ?? (g.itemtype === "course" ? "Course total" : g.itemtype),
+    type: g.itemmodule ?? g.itemtype,
+    grade: formatted(g.gradeformatted),
+    range: formatted(g.rangeformatted),
+    percentage: formatted(g.percentageformatted),
+    weight: formatted(g.weightformatted),
+    feedback: stripHtml(g.feedback, 500) || undefined,
+  };
 }
 
 function buildServer(env: Env, props: GrantProps): McpServer {
@@ -139,29 +158,47 @@ function buildServer(env: Env, props: GrantProps): McpServer {
     "upcoming_deadlines",
     {
       title: "Upcoming deadlines",
-      description: "Upcoming events that need action (assignment due dates, quizzes, …).",
-      inputSchema: { days: z.number().int().min(1).max(120).default(14).describe("How many days ahead") },
+      description:
+        "Upcoming events that need action (assignment due dates, quizzes, …). Recurring online meetings (Zoom, BigBlueButton) are left out unless include_meetings is true.",
+      inputSchema: {
+        days: z.number().int().min(1).max(120).default(14).describe("How many days ahead"),
+        include_meetings: z.boolean().default(false).describe("Also list online meeting sessions"),
+      },
       annotations: { readOnlyHint: true },
     },
-    async ({ days }) =>
+    async ({ days, include_meetings }) =>
       run(async () => {
         const now = Math.floor(Date.now() / 1000);
-        const res = await lms.call<{ events: any[] }>("core_calendar_get_action_events_by_timesort", {
-          timesortfrom: now,
-          timesortto: now + days * 86400,
-          limitnum: 50,
-        });
-        return res.events.map((e) => ({
-          name: e.name,
-          course: e.course?.fullname,
-          courseId: e.course?.id,
-          type: e.modulename,
-          due: isoDate(e.timesort),
-          overdue: !!e.overdue,
-          actionable: e.action?.actionable ?? null,
-          action: e.action?.name ?? null,
-          url: e.url,
-        }));
+        // Moodle returns at most 50 events per call; page with aftereventid so frequent
+        // meetings can't push real deadlines out of the window.
+        const events: any[] = [];
+        let after: number | undefined;
+        let more = true;
+        for (let page = 0; page < DEADLINE_PAGES && more; page++) {
+          const res = await lms.call<{ events: any[]; lastid?: number }>("core_calendar_get_action_events_by_timesort", {
+            timesortfrom: now,
+            timesortto: now + days * 86400,
+            aftereventid: after,
+            limitnum: 50,
+          });
+          events.push(...res.events);
+          more = res.events.length === 50;
+          after = res.lastid ?? res.events.at(-1)?.id;
+        }
+        const list = events
+          .filter((e) => include_meetings || !MEETING_MODULES.has(e.modulename))
+          .map((e) => ({
+            name: e.name,
+            course: e.course?.fullname,
+            courseId: e.course?.id,
+            type: e.modulename,
+            due: isoDate(e.timesort),
+            overdue: !!e.overdue,
+            actionable: e.action?.actionable ?? null,
+            action: e.action?.name ?? null,
+            url: e.url,
+          }));
+        return more ? { events: list, note: "More events exist; ask for fewer days to see them all." } : list;
       })(),
   );
 
@@ -211,7 +248,9 @@ function buildServer(env: Env, props: GrantProps): McpServer {
         const sub = r.lastattempt?.submission;
         return {
           submissionStatus: sub?.status ?? null,
-          submittedAt: isoDate(sub?.timemodified),
+          // timemodified also changes on drafts, so it is only a submission time once submitted.
+          submittedAt: sub?.status === "submitted" ? isoDate(sub.timemodified) : null,
+          lastModified: isoDate(sub?.timemodified),
           gradingStatus: r.lastattempt?.gradingstatus ?? null,
           canSubmit: r.lastattempt?.cansubmit ?? null,
           grade: r.feedback?.gradefordisplay ? stripHtml(r.feedback.gradefordisplay, 200) : null,
@@ -239,15 +278,49 @@ function buildServer(env: Env, props: GrantProps): McpServer {
           courseid: course_id,
           userid: props.lmsUserId,
         });
-        return (r.usergrades[0]?.gradeitems ?? []).map((g: any) => ({
-          item: g.itemname ?? (g.itemtype === "course" ? "Course total" : g.itemtype),
-          type: g.itemmodule ?? g.itemtype,
-          grade: g.gradeformatted || null,
-          range: g.rangeformatted || null,
-          percentage: g.percentageformatted || null,
-          weight: g.weightformatted || null,
-          feedback: stripHtml(g.feedback, 500) || undefined,
-        }));
+        return (r.usergrades[0]?.gradeitems ?? []).map(gradeItem);
+      })(),
+  );
+
+  server.registerTool(
+    "get_attendance",
+    {
+      title: "Attendance",
+      description:
+        "The user's attendance score (points and percentage) in one course, or in every enrolled course when course_id is omitted. It comes from the attendance activity's grade item; courses that don't grade attendance in the gradebook are not listed. Per-session records are not available.",
+      inputSchema: { course_id: z.number().int().optional() },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ course_id }) =>
+      run(async () => {
+        // Read-only on purpose: the attendance plugin's own endpoints either aren't open to
+        // student tokens or (its mobile view) can mark the student present just by loading.
+        const attendanceIn = async (courseid: number): Promise<Omit<ReturnType<typeof gradeItem>, "type">[]> => {
+          const r = await lms.call<{ usergrades: any[] }>("gradereport_user_get_grade_items", {
+            courseid,
+            userid: props.lmsUserId,
+          });
+          return (r.usergrades[0]?.gradeitems ?? [])
+            .filter((g: any) => g.itemmodule === "attendance")
+            .map((g: any) => {
+              const { type, ...item } = gradeItem(g);
+              return item;
+            });
+        };
+        if (course_id) return (await attendanceIn(course_id)).map((g) => ({ courseId: course_id, ...g }));
+
+        const courses = await lms.call<any[]>("core_enrol_get_users_courses", { userid: props.lmsUserId });
+        const results = await Promise.all(
+          courses.map(async (c) => {
+            try {
+              return (await attendanceIn(c.id)).map((g) => ({ course: c.fullname, courseId: c.id, ...g }));
+            } catch (e) {
+              if (e instanceof MoodleError && e.isAuthError) throw e;
+              return []; // e.g. a course without a gradebook for students
+            }
+          }),
+        );
+        return results.flat();
       })(),
   );
 
