@@ -10,3 +10,7 @@ dist/
 CLAUDE.md
 CLAUDE.local.md
 .mcp.json
+
+# IDE
+.idea/
+.vscode/
