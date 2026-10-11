@@ -11,7 +11,7 @@ Claude then gets **read-only** access to their courses, contents, deadlines, ass
 grades, announcements and the text of course files.
 
 <p align="center">
-  <img src="docs/tutorial.gif" alt="Connecting Moodle to Claude with the Mcp4Lms bookmark" width="720">
+  <img src="docs/demo.gif" alt="Asking Claude about attendance and assignments through Mcp4Lms" width="720">
 </p>
 
 One deployment serves one LMS. Mcp4Lms is not affiliated with or endorsed by any university,
