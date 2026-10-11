@@ -195,9 +195,9 @@ const isMobile=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)&&!/Macint
 document.querySelectorAll('.shortcut').forEach(e=>e.innerHTML=isMac?'<kbd>⌘</kbd> <kbd>Shift</kbd> <kbd>B</kbd>':'<kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd>');
 if(isMobile)document.getElementById('mobile').classList.remove('hidden');
 const $=id=>document.getElementById(id);const bm=$('bm'),hint=$('hint'),slot=$('slot');
-const unis=${jsData(unis.filter((u) => u.available).map((u) => ({ id: u.id, name: u.name, short: u.short })))};
+const unis=${jsData(unis.filter((u) => u.available).map((u) => ({ id: u.id, name: u.name })))};
 function choose(id,remember){const u=unis.find(x=>x.id===id);if(!u)return;
-  $('picker').classList.add('hidden');$('chosen').classList.remove('hidden');$('uni-name').textContent=u.name;$('uni-short').textContent=u.short;$('uni-aff').textContent=u.name;
+  $('picker').classList.add('hidden');$('chosen').classList.remove('hidden');$('uni-name').textContent=u.name;$('uni-aff').textContent=u.name;
   $('steps').classList.remove('hidden');if(remember)try{localStorage.setItem('m4l_uni',id)}catch(e){}}
 document.querySelectorAll('.uni[data-id]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.id,true)));
 $('change').addEventListener('click',e=>{e.preventDefault();$('chosen').classList.add('hidden');$('steps').classList.add('hidden');$('picker').classList.remove('hidden');try{localStorage.removeItem('m4l_uni')}catch(e){}});
@@ -226,20 +226,14 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
     script,
     body: html`
       <style>
-        .uni{display:flex;align-items:center;gap:16px;width:100%;min-height:76px;text-align:left;padding:14px 16px 14px 14px;border:1.5px solid var(--line);border-radius:16px;background:#fff;color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
-        [role=listitem]+[role=listitem]{margin-top:10px}
-        .uni:hover:not([disabled]){border-color:var(--ink);box-shadow:0 12px 24px -18px rgba(0,0,0,.45);transform:translateY(-1px)}
-        .uni:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
-        .uni .logo,.chosen .logo{flex:none;width:48px;height:48px;border-radius:12px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.95rem;letter-spacing:-.01em}
-        .uni .info{flex:1;min-width:0}
-        .uni b{display:block;font-size:1.1rem;line-height:1.3}
-        .uni small{display:block;color:var(--ink-2);font-size:.9rem;overflow-wrap:anywhere}
-        .uni .go{flex:none;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;background:var(--ink);color:#fff;font-weight:600;font-size:.92rem}
-        .uni[disabled]{cursor:not-allowed;background:var(--surface);border-style:dashed}
-        .uni[disabled] .logo{background:var(--surface-2);color:var(--ink-2)}
-        .uni .soon{flex:none;padding:5px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font-size:.82rem;font-weight:560}
-        @media (max-width:520px){.uni .go .lbl{display:none}.uni .go{padding:9px 12px}}
-        @media (prefers-reduced-motion:reduce){.uni{transition:none}.uni:hover:not([disabled]){transform:none}}
+        .warn-note{display:flex;align-items:flex-start;gap:10px}.warn-note svg{flex:none;width:18px;height:18px;margin-top:3px;color:#c48600}
+        .uni{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+        .uni+.uni{margin-top:8px}
+        .uni:hover:not([disabled]){border-color:var(--ink)}
+        .uni[disabled]{cursor:default;color:var(--ink-3)}
+        .uni .mark{font-size:1.5rem;line-height:1;-webkit-text-stroke:.5px currentColor}
+        .uni b{display:block}.uni small{color:var(--ink-3);font-family:var(--mono)}
+        .uni .soon{margin-left:auto;font-size:.8rem;color:var(--ink-3)}
         .chosen{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
         .chosen b{flex:1}
         .chosen .ttl{flex-basis:100%;margin-top:6px;padding-top:14px;border-top:1px solid var(--line)}
@@ -280,24 +274,21 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
       </style>
       <h1>${t.connect.h1}</h1>
       <p class="lead">${t.connect.lead}</p>
-      <p class="note small">${t.connect.experimental}</p>
+      <p class="note small warn-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>${t.connect.experimental}</span></p>
       <p id="mobile" class="note hidden">${t.connect.mobile}</p>
-      <div class="card" id="picker">
-        <h2 id="pick-title">${t.connect.pickTitle}</h2>
+      ${tutorial(t)}
+
+      <div id="picker" style="margin-top:32px">
+        <h2>${t.connect.pickTitle}</h2>
         <p class="muted small">${t.connect.pickLead}</p>
-        <div role="list" aria-labelledby="pick-title">
         ${unis.map(
-          (u) => html`<div role="listitem"><button type="button" class="uni" ${u.available ? html`data-id="${u.id}"` : raw("disabled")}>
-            <span class="logo" aria-hidden="true">${u.short}</span>
-            <span class="info"><b>${u.name}</b><small>${new URL(u.lmsUrl).host}</small></span>
-            ${u.available
-              ? html`<span class="go"><span class="lbl">${t.connect.select}</span><span aria-hidden="true">→</span></span>`
-              : html`<span class="soon">${t.connect.notAvailable}</span>`}</button></div>`,
+          (u) => html`<button type="button" class="uni" ${u.available ? html`data-id="${u.id}"` : raw("disabled")}>
+            <span class="mark" aria-hidden="true">${MARK}</span><span><b>${u.name}</b><small>${new URL(u.lmsUrl).host}</small></span>
+            ${u.available ? "" : html`<span class="soon">${t.connect.notAvailable}</span>`}</button>`,
         )}
-        </div>
       </div>
       <div class="card soft chosen hidden" id="chosen">
-        <span class="logo" id="uni-short" aria-hidden="true"></span>
+        <span class="mark" style="font-size:1.5rem;-webkit-text-stroke:.5px currentColor" aria-hidden="true">${MARK}</span>
         <b id="uni-name"></b>
         <a href="#" id="change" class="small muted">${t.connect.change}</a>
         <p class="small muted" style="flex-basis:100%;margin:4px 0 0">${t.connect.affiliation(html`<span id="uni-aff"></span>`)}</p>
@@ -309,8 +300,6 @@ $('copy-console').addEventListener('click',e=>copy(data.console,e.target));
           <p class="small faint" style="margin:8px 0 0">${t.ttl.hint}</p>
         </div>
       </div>
-
-      <div style="margin-top:16px">${tutorial(t)}</div>
 
       <div class="steps hidden" id="steps" style="margin-top:16px">
       <div class="card step" id="s1"><div>

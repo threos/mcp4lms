@@ -100,8 +100,7 @@ const en = {
     mobile: "You seem to be on a phone. Do this step on a computer. Afterwards Claude works on your phone too.",
     pickTitle: "Choose your university",
     pickLead: "Mcp4Lms connects to your university's LMS. Pick yours.",
-    notAvailable: "Coming soon",
-    select: "Select",
+    notAvailable: "not yet available",
     change: "Change",
     affiliation: (uni: unknown) =>
       html`Mcp4Lms is an independent open-source project. It is not affiliated with or endorsed by ${uni}.`,
@@ -427,8 +426,7 @@ const tr: Strings = {
     mobile: "Telefonda görünüyorsunuz. Bu adımı bilgisayarda yapın. Sonrasında Claude telefonunuzda da çalışır.",
     pickTitle: "Üniversitenizi seçin",
     pickLead: "Mcp4Lms üniversitenizin LMS'ine bağlanır. Sizinkini seçin.",
-    notAvailable: "Yakında",
-    select: "Seç",
+    notAvailable: "henüz mevcut değil",
     change: "Değiştir",
     affiliation: (uni: unknown) =>
       html`Mcp4Lms bağımsız bir açık kaynak projesidir. ${uni} ile bağlantılı değildir ve onun tarafından onaylanmamıştır.`,
