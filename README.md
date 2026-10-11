@@ -75,7 +75,9 @@ gives your institution control over data and permissions, gives students an easi
 sign-in, and lets maintainers replace workarounds with proper verification and client registration.
 
 We would prefer to work with your IT and legal teams. Write to
-[maintainers@mcp4lms.com](mailto:maintainers@mcp4lms.com).
+[maintainers@mcp4lms.com](mailto:maintainers@mcp4lms.com). The
+[guideline for institutions](docs/INSTITUTIONS.md) ([Türkçe](docs/INSTITUTIONS.tr.md)) lists the steps for collaborations, self-hosting
+and opt-outs.
 
 **Requesting an opt-out**
 

@@ -721,6 +721,7 @@ addEventListener('scroll',act,{passive:true});addEventListener('resize',act);act
         <p>${p.uniCollab}</p>
         <ul>${p.uniBenefits.map((b) => html`<li>${b}</li>`)}</ul>
         <p>${p.uniContact}</p>
+        <p>${p.uniGuide(`${v.env.REPO_URL}/blob/main/docs/INSTITUTIONS${v.lang === "tr" ? ".tr" : ""}.md`)}</p>
         <h3>${p.uniOptOutTitle}</h3>
         <ul>${p.uniOptOut.map((b) => html`<li>${b}</li>`)}</ul>
       </section>
