@@ -15,8 +15,8 @@ text of course files.
 </p>
 
 > [!NOTE]
-> Mcp4Lms is an experimental, non-profit, volunteer-run open-source project. One deployment serves
-> one LMS. It is not affiliated with or endorsed by any university, Moodle HQ, Anthropic, OpenAI,
+> Mcp4Lms is an experimental, non-profit, volunteer-run open-source project.
+> It is not affiliated with or endorsed by any university, Moodle HQ, Anthropic, OpenAI,
 > Google or Anysphere.
 
 ## 📑 Contents
