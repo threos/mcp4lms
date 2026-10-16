@@ -3,7 +3,7 @@
 // token is added server-side and never appears in tool output.
 import { extractText } from "unpdf";
 import { strFromU8, unzipSync } from "fflate";
-import { stripHtml } from "./moodle";
+import { OUTBOUND_HEADERS, stripHtml } from "./moodle";
 
 export const MAX_FILE_BYTES = 30 * 1024 * 1024;
 export const DEFAULT_TEXT_CHARS = 80_000;
@@ -98,7 +98,7 @@ export function fetchFile(target: URL, token: string | null): Promise<Response> 
   if (token) fetchUrl.searchParams.set("token", token);
   // The LMS (or its WAF) answers 403 to requests without a User-Agent, which Workers' fetch omits.
   return fetch(fetchUrl, {
-    headers: { "user-agent": "Mcp4Lms/0.1 (+https://github.com/threos/mcp4lms)", accept: "*/*" },
+    headers: { ...OUTBOUND_HEADERS, accept: "*/*" },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     redirect: "follow",
   });

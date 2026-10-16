@@ -14,6 +14,14 @@ const ALLOWED_FUNCTIONS = new Set([
   "core_comment_get_comments",
 ]);
 
+// Identifies us in the LMS's logs and gives its admins a way to reach us. Self-hosted forks should
+// put their own contact here.
+export const OUTBOUND_HEADERS = {
+  "User-Agent":
+    "Mcp4Lms/0.1 (+https://mcp4lms.com/privacy#universities; read-only, open source, happy to talk before you block us: maintainers@mcp4lms.com)",
+  From: "maintainers@mcp4lms.com",
+};
+
 export class MoodleError extends Error {
   constructor(
     message: string,
@@ -57,7 +65,7 @@ export class MoodleClient {
     body.set("moodlewsrestformat", "json");
     const res = await fetch(`${this.siteUrl.replace(/\/+$/, "")}/webservice/rest/server.php`, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "mcp4lms" },
+      headers: { ...OUTBOUND_HEADERS, "Content-Type": "application/x-www-form-urlencoded" },
       body,
     });
     if (!res.ok) throw new MoodleError(`LMS returned HTTP ${res.status}`);
