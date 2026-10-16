@@ -18,7 +18,7 @@ const ALLOWED_FUNCTIONS = new Set([
 // put their own contact here.
 export const OUTBOUND_HEADERS = {
   "User-Agent":
-    "Mcp4Lms/0.1 (+https://mcp4lms.com/privacy#universities; read-only, open source, happy to talk before you block us: maintainers@mcp4lms.com)",
+    "Mcp4Lms/0.1 (+https://mcp 4 lms.com/privacy#universities; read-only, open source, happy to talk before you block us: maintainers@mcp 4 lms.com)",
   From: "maintainers@mcp4lms.com",
 };
 
