@@ -2,7 +2,7 @@
   <img src="public/flag.png" alt="Mcp4Lms logo" width="140">
 </p>
 
-<h1 align="center">🏴‍☠️ Mcp4Lms</h1>
+<h1 align="center">🏴‍☠️ Mcp4Lms (MCP for LMS)</h1>
 
 <p align="center">Connect Claude (or any MCP client) to your university's LMS. Works with Moodle™.</p>
 
@@ -15,8 +15,8 @@ text of course files.
 </p>
 
 > [!NOTE]
-> Mcp4Lms is an experimental, non-profit, volunteer-run open-source project. One deployment serves
-> one LMS. It is not affiliated with or endorsed by any university, Moodle HQ, Anthropic, OpenAI,
+> Mcp4Lms is an experimental, non-profit, volunteer-run open-source project.
+> It is not affiliated with or endorsed by any university, Moodle HQ, Anthropic, OpenAI,
 > Google or Anysphere.
 
 ## 📑 Contents
