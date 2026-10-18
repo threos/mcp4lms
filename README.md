@@ -6,6 +6,14 @@
 
 <p align="center">Connect Claude (or any MCP client) to your university's LMS. Works with Moodle™.</p>
 
+> [!IMPORTANT]
+> **Mcp4Lms is shut down.** Özyeğin University has clearly stated that it does not want its LMS
+> accessed through third-party services, and now blocks such requests. We respect that decision.
+> Connecting, logging in, the MCP tools and file downloads are disabled; the hosted service makes
+> no requests to the LMS. Students can still delete their stored data under **Account**.
+>
+> <img src="public/blocked-by-university.png" alt="The LMS's 403 response: using LMS account tokens through third-party servers is not permitted." width="560">
+
 Students connect once with a bookmark, get a personal key, and add one URL to Claude. Claude then
 gets **read-only** access to their courses, deadlines, assignments, grades, announcements and the
 text of course files.
