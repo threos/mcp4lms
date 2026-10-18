@@ -4,6 +4,7 @@ import { purgeExpiredDownloadLinks } from "./downloads";
 import app, { SCOPE } from "./app";
 import { mcpApiHandler } from "./mcp";
 import { rateLimit } from "./ratelimit";
+import { strings } from "./web/i18n";
 
 function options(env: Env): OAuthProviderOptions<Env> {
   return {
@@ -29,6 +30,14 @@ export default {
       url.protocol = canonical.protocol;
       url.host = canonical.host;
       return Response.redirect(url.toString(), 301);
+    }
+    // Shut down: the university does not allow access to its LMS through third-party services.
+    // No MCP calls, client registrations or token exchanges; the web pages explain why.
+    if (url.pathname === "/mcp" || url.pathname.startsWith("/mcp/") || url.pathname === "/register" || url.pathname === "/token") {
+      return new Response(`${strings.en.shutdown.mcp}\n${strings.tr.shutdown.mcp}\n${env.PUBLIC_URL}/connect\n`, {
+        status: 410,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
     }
     // Before the OAuth library, so its own routes (/register, /token) are limited too.
     const limited = await rateLimit(request, env);

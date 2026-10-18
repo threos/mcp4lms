@@ -29,6 +29,7 @@ import {
   homePage,
   messagePage,
   privacyPage,
+  shutdownPage,
 } from "./web/pages";
 
 type Bindings = Env & { OAUTH_PROVIDER: OAuthHelpers };
@@ -83,11 +84,16 @@ app.get("/.well-known/security.txt", (c) => {
     { "Content-Type": "text/plain; charset=utf-8" },
   );
 });
-app.get("/connect", (c) => c.html(connectPage(view(c))));
-app.get("/connect/finish", (c) => c.html(finishPage(view(c))));
-app.get("/connect.js", (c) =>
-  c.text(connectScript(c.env, c.get("lang")), 200, { "Content-Type": "text/javascript; charset=utf-8" }),
-);
+// Shut down: the university does not allow access to its LMS through third-party services.
+// Connecting and logging in are disabled; /account still works so students can delete their data.
+// Registered before the original handlers below, which Hono therefore never reaches.
+const shutdown = (c: Ctx) => c.html(shutdownPage(view(c)), 410);
+app.get("/connect", shutdown);
+app.get("/connect/finish", shutdown);
+app.get("/connect.js", (c) => c.text(`alert(${JSON.stringify(t(c).shutdown.mcp)})`, 410, { "Content-Type": "text/javascript; charset=utf-8" }));
+app.post("/api/connect", (c) => c.json({ error: t(c).shutdown.mcp }, 410));
+app.get("/authorize", shutdown);
+app.post("/authorize", shutdown);
 
 // --- Connect API: receives the encrypted token from the bookmarklet ----------
 

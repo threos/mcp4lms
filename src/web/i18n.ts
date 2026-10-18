@@ -373,6 +373,18 @@ const en = {
   },
 
   notFound: { title: "Not found", message: "This page doesn't exist.", home: "Home" },
+  /** Shown in place of the connect and login pages, and as a banner on the home page. */
+  shutdown: {
+    title: "Mcp4Lms is shut down",
+    banner: "Mcp4Lms is shut down. Özyeğin University has stated that it does not want its LMS accessed through third-party services.",
+    bannerLink: "Read more",
+    lead: "Özyeğin University has clearly stated that it does not want its LMS accessed through third-party services. We respect that decision, so new connections and logins are disabled, and the MCP endpoint no longer answers.",
+    shotCaption: "The LMS's response to every request from Mcp4Lms.",
+    shotAlt: "A 403 Forbidden response from lms.ozyegin.edu.tr: \"This request is intentionally blocked by Ozyegin University: using LMS account tokens through third-party servers is not permitted.\"",
+    dataTitle: "Your data",
+    data: html`Your stored data can still be deleted under <a href="/account">Account</a>. To revoke the LMS token itself, reset it on your LMS's Security keys page.`,
+    mcp: "Mcp4Lms is shut down: Özyeğin University has stated that it does not want its LMS accessed through third-party services.",
+  },
   download: {
     invalidTitle: "Link used or expired",
     invalid: "This download link has already been used or has expired. Links work once, for 5 minutes. Ask Claude for a new one.",
@@ -750,6 +762,17 @@ const tr: Strings = {
   },
 
   notFound: { title: "Bulunamadı", message: "Bu sayfa mevcut değil.", home: "Ana sayfa" },
+  shutdown: {
+    title: "Mcp4Lms kapatıldı",
+    banner: "Mcp4Lms kapatıldı. Özyeğin Üniversitesi, LMS'ine üçüncü taraf hizmetler üzerinden erişilmesini istemediğini bildirdi.",
+    bannerLink: "Ayrıntılar",
+    lead: "Özyeğin Üniversitesi, LMS'ine üçüncü taraf hizmetler üzerinden erişilmesini istemediğini açıkça bildirdi. Bu karara saygı duyuyoruz. Bu nedenle yeni bağlantılar ve girişler kapatıldı, MCP uç noktası da artık yanıt vermiyor.",
+    shotCaption: "LMS'in Mcp4Lms'ten gelen her isteğe verdiği yanıt.",
+    shotAlt: "lms.ozyegin.edu.tr adresinden 403 Forbidden yanıtı: \"Bu istek Özyeğin Üniversitesi tarafından bilinçli olarak engellenmiştir: LMS hesap anahtarlarının üçüncü taraf sunucular üzerinden kullanılmasına izin verilmemektedir.\"",
+    dataTitle: "Verileriniz",
+    data: html`Saklanan verilerinizi <a href="/account">Hesap</a> sayfasından hâlâ silebilirsiniz. LMS anahtarının kendisini iptal etmek için LMS'inizdeki Güvenlik anahtarları sayfasından sıfırlayın.`,
+    mcp: "Mcp4Lms kapatıldı: Özyeğin Üniversitesi, LMS'ine üçüncü taraf hizmetler üzerinden erişilmesini istemediğini bildirdi.",
+  },
   download: {
     invalidTitle: "Bağlantı kullanılmış ya da süresi dolmuş",
     invalid: "Bu indirme bağlantısı zaten kullanılmış ya da süresi dolmuş. Bağlantılar yalnızca bir kez ve 5 dakika boyunca çalışır. Claude'dan yeni bir bağlantı isteyin.",

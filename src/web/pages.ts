@@ -158,6 +158,7 @@ ${pickerJs}
         .tut{max-width:760px;margin:0 auto 64px}
         @media (max-width:760px){.hero{padding-bottom:40px}.prompt{font-size:.95rem;margin-bottom:48px}.tut{margin-bottom:48px}}
       </style>
+      <p class="note" style="margin:0 0 24px;text-align:center">${t.shutdown.banner} <a href="/connect">${t.shutdown.bannerLink}</a></p>
       <section class="hero">
         <img src="/flag.png" alt="" width="692" height="644">
         <h1>${t.home.h1(t.home.h1Forms ? rotForms(t.home.h1Forms) : rot)}</h1>
@@ -516,6 +517,25 @@ export function deletedPage(v: View) {
         ${revokeLink(v)}
       </div>
       <p style="margin-top:24px"><a class="btn" href="/">${t.backHome}</a></p>`,
+  });
+}
+
+/** Replaces the connect and login pages: the university does not allow access through third-party services. */
+export function shutdownPage(v: View) {
+  const t = strings[v.lang].shutdown;
+  return page(v, {
+    title: t.title,
+    current: "/connect",
+    body: html`<h1>${t.title}</h1><p class="lead">${t.lead}</p>
+      <figure style="margin:0 0 24px">
+        <img src="/blocked-by-university.png" alt="${t.shotAlt}" width="1680" height="1064" style="width:100%;height:auto;border-radius:var(--r);border:1px solid var(--line)">
+        <figcaption class="small muted" style="margin-top:8px">${t.shotCaption}</figcaption>
+      </figure>
+      <div class="card soft">
+        <h2>${t.dataTitle}</h2>
+        <p class="muted" style="margin:0 0 12px">${t.data}</p>
+        ${revokeLink(v)}
+      </div>`,
   });
 }
 
