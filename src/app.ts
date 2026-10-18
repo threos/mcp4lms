@@ -225,7 +225,13 @@ app.post("/authorize", async (c) => {
 
 // --- Account management ----------------------------------------------------------
 
-async function renderAccount(c: Ctx, key: string, account: UnlockedAccount, notice?: string) {
+async function renderAccount(
+  c: Ctx,
+  key: string,
+  account: UnlockedAccount,
+  notice?: Parameters<typeof accountPage>[1]["notice"],
+  error?: string,
+) {
   const env = c.env;
   let name: string | null = null;
   try {
@@ -241,6 +247,7 @@ async function renderAccount(c: Ctx, key: string, account: UnlockedAccount, noti
     expiresAt: account.expiresAt,
     grants,
     notice,
+    error,
   });
 }
 
@@ -292,6 +299,24 @@ app.post("/account/revoke", async (c) => {
   // Links aren't tied to a grant, so revoking any grant ends all of the account's download links.
   await deleteDownloadLinks(c.env, u.account.id);
   return c.html(await renderAccount(c, key, u.account, t(c).account.revoked));
+});
+
+// Makes the same kind of read-only calls the MCP tools make, so a blocked or expired token shows up here.
+app.post("/account/test", async (c) => {
+  const key = String((await c.req.formData()).get("key") ?? "");
+  const u = await unlockAccount(c.env, key);
+  if (!u.ok) return refuseAccount(c, u.reason);
+  const s = t(c).account;
+  const client = new MoodleClient(u.account.lmsUrl, u.account.lmsToken);
+  try {
+    const info = await client.siteInfo();
+    const courses = await client.call<unknown[]>("core_enrol_get_users_courses", { userid: info.userid });
+    return c.html(await renderAccount(c, key, u.account, s.testOk(info.fullname, courses.length)));
+  } catch (e) {
+    const error =
+      e instanceof MoodleError ? (e.isAuthError ? s.testAuthFailed : s.testLmsError(e.message)) : s.testUnreachable;
+    return c.html(await renderAccount(c, key, u.account, undefined, error));
+  }
 });
 
 // Only moves the expiry; the key, the stored token and the LMS are not touched.

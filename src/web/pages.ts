@@ -559,11 +559,12 @@ export function accountPage(
     createdAt: number;
     expiresAt: number;
     grants: { id: string; clientName: string; createdAt: number }[];
-    notice?: string;
+    notice?: string | ReturnType<typeof html>;
+    error?: string;
   },
 ) {
   const t = strings[v.lang];
-  const { key, name, createdAt, expiresAt, grants, notice } = opts;
+  const { key, name, createdAt, expiresAt, grants, notice, error } = opts;
   const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
   return page(v, {
     title: t.account.title,
@@ -573,10 +574,15 @@ export function accountPage(
       ${raw(segCss)}</style>
       <h1>${t.account.title}</h1>
       ${notice ? html`<p class="note ok">${notice}</p>` : ""}
+      ${error ? html`<p class="note err">${error}</p>` : ""}
       <div class="card soft">
         <h2>${t.account.lmsTitle}</h2>
         <p class="muted" style="margin:0">${name ? t.account.connectedAs(name, day(createdAt)) : t.account.connectedOn(day(createdAt))}</p>
         <p class="muted" style="margin:6px 0 0">${t.account.expiresOn(day(expiresAt))}</p>
+        <form method="post" action="/account/test" style="margin-top:14px">
+          <input type="hidden" name="key" value="${key}">
+          <button class="btn ghost sm" type="submit">${t.account.testButton}</button>
+        </form>
         <form method="post" action="/account/expiry" style="margin-top:14px">
           <input type="hidden" name="key" value="${key}">
           <p class="small muted" style="margin:0 0 8px">${t.account.expiryLead}</p>
