@@ -593,16 +593,13 @@ export function accountPage(
       <style>.app{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);margin:0}.app:first-of-type{border-top:0;padding-top:0}
       ${raw(segCss)}</style>
       <h1>${t.account.title}</h1>
+      <p class="note">${t.shutdown.banner} <a href="/connect">${t.shutdown.bannerLink}</a></p>
       ${notice ? html`<p class="note ok">${notice}</p>` : ""}
       ${error ? html`<p class="note err">${error}</p>` : ""}
       <div class="card soft">
         <h2>${t.account.lmsTitle}</h2>
         <p class="muted" style="margin:0">${name ? t.account.connectedAs(name, day(createdAt)) : t.account.connectedOn(day(createdAt))}</p>
         <p class="muted" style="margin:6px 0 0">${t.account.expiresOn(day(expiresAt))}</p>
-        <form method="post" action="/account/test" style="margin-top:14px">
-          <input type="hidden" name="key" value="${key}">
-          <button class="btn ghost sm" type="submit">${t.account.testButton}</button>
-        </form>
         <form method="post" action="/account/expiry" style="margin-top:14px">
           <input type="hidden" name="key" value="${key}">
           <p class="small muted" style="margin:0 0 8px">${t.account.expiryLead}</p>

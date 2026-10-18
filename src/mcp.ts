@@ -8,6 +8,7 @@ import { accountExpiresAt, isExpired } from "./accounts";
 import { MoodleClient, MoodleError, decodeEntities, isoDate, stripHtml, stripToken } from "./moodle";
 import { DEFAULT_TEXT_CHARS, MAX_TEXT_CHARS, NeedsConfirmation, fetchFileText, lmsFileUrl } from "./files";
 import { DOWNLOAD_TTL_MS, createDownloadLink } from "./downloads";
+import { strings } from "./web/i18n";
 
 export interface GrantProps extends Record<string, unknown> {
   accountId: string;
@@ -515,19 +516,13 @@ function buildServer(env: Env, props: GrantProps): McpServer {
 }
 
 export const mcpApiHandler = {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const props = (ctx as ExecutionContext & { props: GrantProps }).props;
-    if (!props?.lmsToken) return new Response("Unauthorized", { status: 401 });
-    // The user's chosen expiry lives in D1, not in the grant's props, so a change on the
-    // account page (or the cron purge) takes effect on the next request. One lookup by id.
-    if (isExpired(await accountExpiresAt(env, props.accountId))) return expiredResponse(request, env);
-    const server = buildServer(env, props);
-    const transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined, // stateless
-      enableJsonResponse: true,
+  async fetch(): Promise<Response> {
+    // Shut down: the university does not allow access to its LMS through third-party services.
+    // No tool runs and no LMS request is made. (index.ts already answers /mcp; this keeps the tools off on their own.)
+    return new Response(`${strings.en.shutdown.mcp}\n${strings.tr.shutdown.mcp}\n`, {
+      status: 410,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
-    await server.connect(transport);
-    return transport.handleRequest(request);
   },
 };
 

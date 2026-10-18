@@ -12,20 +12,16 @@ import {
   type UnlockedAccount,
 } from "./accounts";
 import { decryptConnectPayload, md5Hex, sha256Hex } from "./crypto";
-import { deleteDownloadLinks, openDownloadLink } from "./downloads";
-import { fetchFile, fileNameOf } from "./files";
+import { deleteDownloadLinks } from "./downloads";
 import { MoodleClient, MoodleError, normalizeSiteUrl } from "./moodle";
 import type { GrantProps } from "./mcp";
 import { SECURITY_HEADERS, type View } from "./web/layout";
-import { connectScript } from "./web/bookmarklet";
 import { DEFAULT_LANG, isLang, langFromAcceptLanguage, strings, type Lang } from "./web/i18n";
 import {
   accountLoginPage,
   accountPage,
   authorizePage,
-  connectPage,
   deletedPage,
-  finishPage,
   homePage,
   messagePage,
   privacyPage,
@@ -239,12 +235,8 @@ async function renderAccount(
   error?: string,
 ) {
   const env = c.env;
-  let name: string | null = null;
-  try {
-    name = (await new MoodleClient(account.lmsUrl, account.lmsToken).siteInfo()).fullname;
-  } catch {
-    // LMS rejected or unreachable: still let the user manage and delete their data.
-  }
+  // Shut down: the account page no longer asks the LMS for the student's name.
+  const name: string | null = null;
   const grants = await listGrants(env.OAUTH_PROVIDER, account.id);
   return accountPage(view(c), {
     key,
@@ -261,30 +253,13 @@ async function renderAccount(
 const refuseAccount = (c: Ctx, reason: "invalid" | "expired") =>
   c.html(accountLoginPage(view(c), reason === "expired" ? t(c).account.keyExpired : t(c).account.wrongKey), 400);
 
-// Temporary signed link from the MCP tools: streams one LMS file with the token added server-side.
+// Temporary signed link from the MCP tools. Used to stream one LMS file; now only the shutdown notice.
 app.get("/dl/:link", async (c) => {
   // Hono serves HEAD through GET routes. Links work once, so a HEAD (link previews, sandboxes
   // probing before they fetch) must not use one up: answer without even looking the link up.
   if (c.req.method === "HEAD") return c.body(null, 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
-  const s = t(c).download;
-  const link = await openDownloadLink(c.env, c.req.param("link"));
-  if (!link) return c.html(messagePage(view(c), s.invalidTitle, s.invalid), 410);
-  const res = await fetchFile(link.target, link.token).catch(() => null);
-  const type = res?.headers.get("content-type") ?? "";
-  const name = fileNameOf(link.target);
-  // Moodle answers a token or permission problem with a JSON error instead of the file.
-  if (!res?.ok || !res.body || (type.startsWith("application/json") && !name.toLowerCase().endsWith(".json"))) {
-    return c.html(messagePage(view(c), s.failedTitle, s.failed), 502);
-  }
-  const headers = new Headers({
-    "Content-Type": type || "application/octet-stream",
-    "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
-    "X-Robots-Tag": "noindex",
-    "Cache-Control": "private, no-store",
-  });
-  const length = res.headers.get("content-length");
-  if (length) headers.set("Content-Length", length);
-  return new Response(res.body, { headers });
+  // Shut down: no file is fetched from the LMS.
+  return shutdown(c);
 });
 
 app.get("/account", (c) => c.html(accountLoginPage(view(c))));
@@ -307,22 +282,13 @@ app.post("/account/revoke", async (c) => {
   return c.html(await renderAccount(c, key, u.account, t(c).account.revoked));
 });
 
-// Makes the same kind of read-only calls the MCP tools make, so a blocked or expired token shows up here.
+// Used to make the same kind of read-only calls the MCP tools make; old forms now get the shutdown notice.
 app.post("/account/test", async (c) => {
   const key = String((await c.req.formData()).get("key") ?? "");
   const u = await unlockAccount(c.env, key);
   if (!u.ok) return refuseAccount(c, u.reason);
-  const s = t(c).account;
-  const client = new MoodleClient(u.account.lmsUrl, u.account.lmsToken);
-  try {
-    const info = await client.siteInfo();
-    const courses = await client.call<unknown[]>("core_enrol_get_users_courses", { userid: info.userid });
-    return c.html(await renderAccount(c, key, u.account, s.testOk(info.fullname, courses.length)));
-  } catch (e) {
-    const error =
-      e instanceof MoodleError ? (e.isAuthError ? s.testAuthFailed : s.testLmsError(e.message)) : s.testUnreachable;
-    return c.html(await renderAccount(c, key, u.account, undefined, error));
-  }
+  // Shut down: no test request is sent to the LMS.
+  return c.html(await renderAccount(c, key, u.account, undefined, t(c).shutdown.mcp));
 });
 
 // Only moves the expiry; the key, the stored token and the LMS are not touched.
